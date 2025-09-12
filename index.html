@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini News Service</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1><a href="#" onclick="showPage('main')">🚀 Gemini News</a></h1>
+        <nav>
+            <ul>
+                <li><a href="#" class="nav-link" data-page="main">메인</a></li>
+                <li><a href="#" class="nav-link" data-page="explore">뉴스 탐색</a></li>
+                <li><a href="#" class="nav-link" data-page="analysis">뉴스 분석</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="main-page" class="page active">
+            <h2>오늘의 주요 뉴스</h2>
+            <div id="top-news" class="news-grid">
+                </div>
+            
+            <h2>최신 뉴스 라인</h2>
+            <div id="latest-news" class="news-list">
+                </div>
+        </section>
+
+        <section id="explore-page" class="page">
+            <h2>뉴스 탐색</h2>
+            <div class="filter-container">
+                <select id="category-filter">
+                    <option value="all">전체 카테고리</option>
+                    <option value="정치">정치</option>
+                    <option value="경제">경제</option>
+                    <option value="사회">사회</option>
+                    <option value="IT/과학">IT/과학</option>
+                </select>
+                <select id="sort-order">
+                    <option value="latest">최신순</option>
+                    <option value="importance">중요도순</option>
+                </select>
+                <button id="apply-filter">적용</button>
+            </div>
+            <div id="explore-results" class="news-list">
+                </div>
+        </section>
+
+        <section id="analysis-page" class="page">
+            <h2>뉴스 분석 (준비중)</h2>
+            <p>일간, 주간, 월간 뉴스 트렌드 분석 기능이 추가될 예정입니다.</p>
+            <div class="analysis-placeholder">
+                📊
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Gemini News Service. All rights reserved.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
