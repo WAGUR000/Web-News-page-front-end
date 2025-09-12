@@ -58,11 +58,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // 메인 페이지: 오늘의 주요 뉴스 렌더링
     function renderTopNews(newsData) {
         const container = document.getElementById('top-news');
-        // 중요도 5 이상인 뉴스를 상단에 노출
+        // API에서 이미 중요도 순으로 정렬된 데이터를 받았으므로, 상위 6개만 잘라서 보여줍니다.
         const topNews = newsData
-            .filter(news => news.importance >= 8)
-            .sort((a, b) => new Date(b.date) - new Date(a.date))
-            .slice(0, 6); // 최대 2개만
+            .slice(0, 6);
         
         container.innerHTML = topNews.map(createNewsItemHTML).join('');
     }
@@ -70,7 +68,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // 메인 페이지: 최신 뉴스 렌더링
     function renderLatestNews(newsData) {
         const container = document.getElementById('latest-news');
-        const latestNews = [...newsData].sort((a, b) => new Date(b.date) - new Date(a.date));
+        // API에서 이미 최신순으로 데이터를 받았으므로, 그대로 사용합니다.
+        // 여기서는 모든 최신 뉴스를 보여주기 위해 slice를 사용하지 않습니다.
+        const latestNews = newsData;
         container.innerHTML = latestNews.map(createNewsItemHTML).join('');
     }
 
@@ -109,31 +109,47 @@ document.addEventListener('DOMContentLoaded', () => {
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const day = String(today.getDate()).padStart(2, '0');
     const dateString = `${year}-${month}-${day}`;
+    const baseUrl = `https://xxterco9tj.execute-api.ap-northeast-2.amazonaws.com/default/Access_DynamoDB`;
 
-    // ⭐️ 2. API를 호출할 때 URL에 mode와 date 파라미터를 추가합니다.
-    const apiUrl = `https://xxterco9tj.execute-api.ap-northeast-2.amazonaws.com/default/Access_DynamoDB?mode=latest&date=${dateString}`;
+    // ⭐️ 2. '중요도순'과 '최신순'으로 각각 30개의 뉴스를 요청하는 API URL을 만듭니다.
+    const importantNewsUrl = `${baseUrl}?mode=important&date=${dateString}&limit=30`;
+    const latestNewsUrl = `${baseUrl}?mode=latest&date=${dateString}&limit=30`;
     
     try {
-        const response = await fetch(apiUrl);
-        if (!response.ok) {
-            // API가 400 같은 에러를 반환했을 때 콘솔에 자세한 내용을 표시
-            const errorData = await response.json();
-            console.error('API Error:', errorData);
-            return; // 에러 발생 시 함수 종료
+        // ⭐️ 3. Promise.all을 사용해 두 API를 동시에 호출하고 데이터를 받아옵니다.
+        const [importantResponse, latestResponse] = await Promise.all([
+            fetch(importantNewsUrl),
+            fetch(latestNewsUrl)
+        ]);
+
+        if (!importantResponse.ok || !latestResponse.ok) {
+            console.error('API Error:', {
+                importantStatus: importantResponse.status,
+                latestStatus: latestResponse.status
+            });
+            return;
         }
-        const newsData = await response.json();
+
+        const importantNewsData = await importantResponse.json();
+        const latestNewsData = await latestResponse.json();
     
-        // ... (이하 렌더링 코드 동일) ...
+        // '뉴스 탐색'을 위해 두 데이터를 합치고 중복을 제거합니다.
+        const allNewsMap = new Map();
+        importantNewsData.forEach(news => allNewsMap.set(news.SK, news)); // SK를 고유 키로 사용
+        latestNewsData.forEach(news => allNewsMap.set(news.SK, news));
+        const combinedNewsData = Array.from(allNewsMap.values());
         
         // 초기 페이지 렌더링
-        renderTopNews(newsData);
-        renderLatestNews(newsData);
-        renderExploreNews(newsData);
+        // '오늘의 주요 뉴스'에는 중요도순 데이터를, '최신 뉴스'에는 최신순 데이터를 전달합니다.
+        renderTopNews(importantNewsData);
+        renderLatestNews(latestNewsData);
+        renderExploreNews(combinedNewsData); // 탐색 페이지에는 통합된 데이터를 전달
         showPage('main'); // 초기 페이지를 '메인'으로 설정
 
         // 필터 적용 버튼 이벤트 리스너
         document.getElementById('apply-filter').addEventListener('click', () => {
-            renderExploreNews(newsData);
+            // 필터 적용 시에도 통합된 데이터를 사용합니다.
+            renderExploreNews(combinedNewsData);
         });
 
     } catch (error) {
