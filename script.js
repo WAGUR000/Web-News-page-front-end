@@ -38,17 +38,21 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 뉴스 아이템 HTML 템플릿
     function createNewsItemHTML(news) {
-        return `
-            <div class="news-item">
-                <h3>${news.title}</h3>
-                <p>${news.summary}</p>
-                <div class="news-meta">
-                    <span class="category">${news.main_category}</span>
-                    <span>중요도: ${'★'.repeat(news.importance)}${'☆'.repeat(5 - news.importance)}</span>
-                    <span>${new Date(news.date).toLocaleString()}</span>
-                </div>
-            </div>
-        `;
+     // ⭐️ 중요도(1~10)를 별점(1~5)으로 변환합니다.
+    const filledSquare = news.importance
+    const emptySquare = 10 - filledSquare;
+
+    return `
+       <div class="news-item">
+           <h3>${news.title}</h3>
+           <p>${news.description}</p>
+           <div class="news-meta">
+               <span class="category">${news.main_category}</span>
+               <span>중요도: ${'★'.repeat(filledSquare)}${'☆'.repeat(emptySquare)}</span>
+               <span>${new Date(news.pub_date).toLocaleString()}</span>
+           </div>
+       </div>
+    `;
     }
 
     // 메인 페이지: 오늘의 주요 뉴스 렌더링
@@ -56,9 +60,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById('top-news');
         // 중요도 5 이상인 뉴스를 상단에 노출
         const topNews = newsData
-            .filter(news => news.importance >= 5)
+            .filter(news => news.importance >= 8)
             .sort((a, b) => new Date(b.date) - new Date(a.date))
-            .slice(0, 2); // 최대 2개만
+            .slice(0, 6); // 최대 2개만
         
         container.innerHTML = topNews.map(createNewsItemHTML).join('');
     }
@@ -99,13 +103,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 초기 데이터 로드 및 이벤트 리스너 설정 ---
 
     async function initializeApp() {
-        // TODO: API Gateway 엔드포인트로 교체하세요.
-        // const response = await fetch('YOUR_API_GATEWAY_ENDPOINT/news');
-        // const newsData = await response.json();
-        
-        // 지금은 목업 데이터를 사용합니다.
-        const newsData = mockNewsData; 
+    // ⭐️ 1. 오늘 날짜를 'YYYY-MM-DD' 형식의 문자열로 만듭니다.
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const dateString = `${year}-${month}-${day}`;
 
+    // ⭐️ 2. API를 호출할 때 URL에 mode와 date 파라미터를 추가합니다.
+    const apiUrl = `https://xxterco9tj.execute-api.ap-northeast-2.amazonaws.com/default/Access_DynamoDB?mode=latest&date=${dateString}`;
+    
+    try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+            // API가 400 같은 에러를 반환했을 때 콘솔에 자세한 내용을 표시
+            const errorData = await response.json();
+            console.error('API Error:', errorData);
+            return; // 에러 발생 시 함수 종료
+        }
+        const newsData = await response.json();
+    
+        // ... (이하 렌더링 코드 동일) ...
+        
         // 초기 페이지 렌더링
         renderTopNews(newsData);
         renderLatestNews(newsData);
@@ -116,7 +135,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('apply-filter').addEventListener('click', () => {
             renderExploreNews(newsData);
         });
+
+    } catch (error) {
+        console.error('Fetch Error:', error);
     }
+}
 
     initializeApp();
 });
