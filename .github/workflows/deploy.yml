@@ -30,3 +30,9 @@ jobs:
       - name: Sync files to S3
         run: |
           aws s3 sync . s3://news-project-frontend --delete
+
+          
+      # 4. 배포시에 예전 버전 페이지를 보여주지 않도록 캐시를 무효화합니다.
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation --distribution-id EZIBWHND9WD3V --paths "/*"
