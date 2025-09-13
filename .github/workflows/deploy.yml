@@ -1,0 +1,32 @@
+name: Deploy Frontend to AWS S3
+
+# main 브랜치에 코드가 push될 때마다 이 워크플로우를 실행합니다.
+on:
+  push:
+    branches:
+      - main
+
+# OIDC 인증을 위한 권한 설정
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 리포지토리의 코드를 runner로 가져옵니다.
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2. IAM 역할을 사용해 AWS에 인증합니다.
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::535002878545:role/GitHub-S3-Deploy-Role # 2단계에서 복사한 IAM 역할의 ARN
+          aws-region: ap-northeast-2 # 예: ap-northeast-2
+
+      # 3. AWS CLI를 사용해 S3 버킷에 파일을 동기화(업로드)합니다.
+      - name: Sync files to S3
+        run: |
+          aws s3 sync . s3://news-project-frontend --delete
