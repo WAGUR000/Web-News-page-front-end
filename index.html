@@ -9,7 +9,7 @@
 <body>
 
     <header>
-        <h1><a href="#" onclick="showPage('main')">🚀 Gemini News</a></h1>
+        <h1><a href="#" id="logo-link">News</a></h1>
         <nav>
             <ul>
                 <li><a href="#" class="nav-link" data-page="main">메인</a></li>
@@ -26,28 +26,58 @@
                 </div>
             
             <h2>최신 뉴스 라인</h2>
+            <div class="category-filter-container" id="main-category-filter-list">
+                <button class="category-btn active" data-category="all">전체</button>
+                <button class="category-btn" data-category="정치">정치</button>
+                <button class="category-btn" data-category="경제">경제</button>
+                <button class="category-btn" data-category="사회">사회</button>
+                <button class="category-btn" data-category="IT/과학">IT/과학</button>
+                <button class="category-btn" data-category="문화/생활">문화/생활</button>
+                <button class="category-btn" data-category="연예">연예</button>
+                <button class="category-btn" data-category="스포츠">스포츠</button>
+                <button class="category-btn" data-category="국제">국제</button>
+            </div>
             <div id="latest-news" class="news-list">
                 </div>
+            <div class="load-more-container">
+                <button id="main-load-more-btn" class="load-more-btn">더 보기</button>
+            </div>
         </section>
 
         <section id="explore-page" class="page">
             <h2>뉴스 탐색</h2>
-            <div class="filter-container">
-                <select id="category-filter">
-                    <option value="all">전체 카테고리</option>
-                    <option value="정치">정치</option>
-                    <option value="경제">경제</option>
-                    <option value="사회">사회</option>
-                    <option value="IT/과학">IT/과학</option>
-                </select>
-                <select id="sort-order">
-                    <option value="latest">최신순</option>
-                    <option value="importance">중요도순</option>
-                </select>
-                <button id="apply-filter">적용</button>
+            <div class="explore-filters">
+                <div class="category-filter-container" id="explore-category-filter-list">
+                    <button class="category-btn active" data-category="all">전체</button>
+                    <button class="category-btn" data-category="정치">정치</button>
+                    <button class="category-btn" data-category="경제">경제</button>
+                    <button class="category-btn" data-category="사회">사회</button>
+                    <button class="category-btn" data-category="IT/과학">IT/과학</button>
+                    <button class="category-btn" data-category="문화/생활">문화/생활</button>
+                    <button class="category-btn" data-category="연예">연예</button>
+                    <button class="category-btn" data-category="스포츠">스포츠</button>
+                    <button class="category-btn" data-category="국제">국제</button>
+                </div>
+                <div class="explore-controls-container">
+                    <div class="sort-controls">
+                        <select id="sort-order">
+                            <option value="latest">최신순</option>
+                            <option value="important">중요도순</option>
+                        </select>
+                    </div>
+                    <div class="pagination-controls">
+                        <select id="items-per-page">
+                            <option value="10" selected>10개씩 보기</option>
+                            <option value="30">30개씩 보기</option>
+                            <option value="50">50개씩 보기</option>
+                        </select>
+                    </div>
+                </div>
             </div>
             <div id="explore-results" class="news-list">
                 </div>
+            <div id="load-more-container" class="load-more-container"></div>
+            <div id="pagination-container"></div>
         </section>
 
         <section id="analysis-page" class="page">
@@ -60,7 +90,7 @@
     </main>
 
     <footer>
-        <p>&copy; 2025 Gemini News Service. All rights reserved.</p>
+        <p>&copy; 2025 News Service. All rights reserved.</p>
     </footer>
 
     <script src="script.js"></script>

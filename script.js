@@ -1,14 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- 가상 데이터 (Mock Data) ---
     // 실제로는 API를 통해 DynamoDB에서 이와 같은 형태의 데이터를 받아옵니다.
-    const mockNewsData = [
-        { id: 1, title: "정부, 반도체 산업 지원을 위한 10조원 규모 펀드 조성", summary: "국내 반도체 생태계 강화를 위해 정부가 파격적인 지원책을 발표했습니다.", main_category: "경제", importance: 5, date: "2025-09-12T10:00:00Z" },
-        { id: 2, title: "기후 변화 대응, 글로벌 탄소 배출량 감축 목표 상향 조정", summary: "UN 기후변화 회의에서 각국 대표단이 새로운 감축 목표에 합의했습니다.", main_category: "사회", importance: 4, date: "2025-09-12T09:00:00Z" },
-        { id: 3, title: "차세대 AI 모델 'Gemini 2.0' 공개, 인간과 유사한 추론 능력 선보여", summary: "구글에서 발표한 새로운 AI 모델이 업계에 큰 파장을 일으키고 있습니다.", main_category: "IT/과학", importance: 5, date: "2025-09-11T15:00:00Z" },
-        { id: 4, title: "여야, 내년 예산안 처리 두고 막판 진통", summary: "법정 처리 시한을 앞두고 여야 간의 힘겨루기가 계속되고 있습니다.", main_category: "정치", importance: 3, date: "2025-09-11T11:00:00Z" },
-        { id: 5, title: "한국 축구 대표팀, 월드컵 예선 최종전에서 극적인 승리", summary: "손흥민의 결승골에 힘입어 본선 진출에 성공했습니다.", main_category: "스포츠", importance: 4, date: "2025-09-10T23:00:00Z" },
-        { id: 6, title: "서울시, 대중교통 요금 인상 계획 발표", summary: "누적된 적자를 해소하기 위해 내년부터 요금 인상이 불가피하다는 입장입니다.", main_category: "사회", importance: 2, date: "2025-09-10T14:00:00Z" }
-    ];
 
     // --- 페이지 네비게이션 로직 ---
     const navLinks = document.querySelectorAll('.nav-link');
@@ -33,26 +25,54 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // --- 뉴스 탐색 페이지 상태 ---
+    // '더 보기' 기능으로 변경되면서 클라이언트 측 페이지네이션 상태는 제거됩니다.
+    // 서버로부터 데이터를 받아와 관리하기 위한 새로운 상태 변수들입니다.
+    let exploreNews = []; // 뉴스 탐색 탭에 표시될 모든 뉴스를 담는 배열
+    let exploreLastKey = null; // 다음 페이지를 요청하기 위한 페이지네이션 토큰
+    let isLoadingExplore = false; // 중복 '더 보기' 요청을 방지하기 위한 플래그
+    let exploreCurrentPage = 1; // 뉴스 탐색 탭의 클라이언트 측 페이지네이션을 위한 현재 페이지
 
     // --- 데이터 렌더링 함수 ---
     
     // 뉴스 아이템 HTML 템플릿
     function createNewsItemHTML(news) {
-     // ⭐️ 중요도(1~10)를 별점(1~5)으로 변환합니다.
-    const filledSquare = news.importance
-    const emptySquare = 10 - filledSquare;
+        // ⭐️ 중요도(1~10)를 별점으로 변환합니다.
+        const filledSquare = news.importance;
+        const emptySquare = 10 - filledSquare;
+        // ⭐️ SK 값에서 '#' 뒤의 URL을 추출합니다. URL이 없으면 '#'을 기본값으로 사용합니다.
+        const url = news.SK && news.SK.includes('#') ? news.SK.split('#')[1] : '#';
 
-    return `
-       <div class="news-item">
-           <h3>${news.title}</h3>
-           <p>${news.description}</p>
-           <div class="news-meta">
-               <span class="category">${news.main_category}</span>
-               <span>중요도: ${'★'.repeat(filledSquare)}${'☆'.repeat(emptySquare)}</span>
-               <span>${new Date(news.pub_date).toLocaleString()}</span>
+        // 감정 분석 클래스 및 텍스트 설정
+        let sentimentClass = '';
+        // DynamoDB에서 'sentiment' 필드가 없을 경우를 대비해 기본값을 '중립'으로 설정합니다.
+        const sentiment = news.sentiment || '중립'; 
+
+        if (sentiment === '긍정') {
+            sentimentClass = 'sentiment-positive';
+        } else if (sentiment === '부정') {
+            sentimentClass = 'sentiment-negative';
+        }
+        // '중립'은 기본 색상이므로 별도 클래스가 필요 없습니다.
+    
+        return `
+           <div class="news-item" data-category="${news.main_category}">
+               <h3>${news.title}</h3>
+               <p>${news.topic || '주제 정보가 없습니다.'}</p>
+               <div class="news-meta">
+                   <span class="category">${news.main_category}</span>
+                   <span>중요도: ${'★'.repeat(filledSquare)}${'☆'.repeat(emptySquare)}</span>
+                   <span>${new Date(news.pub_date).toLocaleString()}</span>
+               </div>
+               <div class="news-details">
+                   <div class="details-footer">
+                       <span class="sentiment ${sentimentClass}"> ${sentiment}</span>
+                       <button class="related-news-btn">관련 중요 뉴스 보기</button>
+                       <a href="${url}" target="_blank" class="news-link">기사 원문 보기 &rarr;</a>
+                   </div>
+               </div>
            </div>
-       </div>
-    `;
+        `;
     }
 
     // 메인 페이지: 오늘의 주요 뉴스 렌더링
@@ -68,37 +88,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // 메인 페이지: 최신 뉴스 렌더링
     function renderLatestNews(newsData) {
         const container = document.getElementById('latest-news');
-        // API에서 이미 최신순으로 데이터를 받았으므로, 그대로 사용합니다.
-        // 여기서는 모든 최신 뉴스를 보여주기 위해 slice를 사용하지 않습니다.
-        const latestNews = newsData;
-        container.innerHTML = latestNews.map(createNewsItemHTML).join('');
-    }
+        // 활성화된 카테고리 버튼에서 카테고리 값을 가져옵니다.
+        const activeCategoryButton = document.querySelector('#main-category-filter-list .category-btn.active');
+        const category = activeCategoryButton ? activeCategoryButton.dataset.category : 'all';
 
-    // 뉴스 탐색 페이지: 필터링 및 정렬된 뉴스 렌더링
-    function renderExploreNews(newsData) {
-        const container = document.getElementById('explore-results');
-        
-        // 필터 값 가져오기
-        const category = document.getElementById('category-filter').value;
-        const sortBy = document.getElementById('sort-order').value;
 
-        let filteredNews = newsData;
+        let processedNews = [...newsData];
 
         // 카테고리 필터링
         if (category !== 'all') {
-            filteredNews = filteredNews.filter(news => news.main_category === category);
+            processedNews = processedNews.filter(news => news.main_category === category);
         }
 
-        // 정렬
-        if (sortBy === 'latest') {
-            filteredNews.sort((a, b) => new Date(b.date) - new Date(a.date));
-        } else if (sortBy === 'importance') {
-            filteredNews.sort((a, b) => b.importance - a.importance);
-        }
-        
-        container.innerHTML = filteredNews.map(createNewsItemHTML).join('');
+        // API에서 이미 최신순으로 데이터를 받았으므로, 별도 정렬은 필요 없습니다.
+        container.innerHTML = processedNews.map(createNewsItemHTML).join('');
     }
-
 
     // --- 초기 데이터 로드 및 이벤트 리스너 설정 ---
 
@@ -111,51 +115,325 @@ document.addEventListener('DOMContentLoaded', () => {
     const dateString = `${year}-${month}-${day}`;
     const baseUrl = `https://xxterco9tj.execute-api.ap-northeast-2.amazonaws.com/default/Access_DynamoDB`;
 
-    // ⭐️ 2. '중요도순'과 '최신순'으로 각각 30개의 뉴스를 요청하는 API URL을 만듭니다.
-    const importantNewsUrl = `${baseUrl}?mode=important&date=${dateString}&limit=30`;
-    const latestNewsUrl = `${baseUrl}?mode=latest&date=${dateString}&limit=30`;
-    
     try {
-        // ⭐️ 3. Promise.all을 사용해 두 API를 동시에 호출하고 데이터를 받아옵니다.
-        const [importantResponse, latestResponse] = await Promise.all([
-            fetch(importantNewsUrl),
-            fetch(latestNewsUrl)
-        ]);
+        // ⭐️ 1. 메인 페이지용 데이터 로드: 'all_categories_summary' 모드로 오늘의 모든 카테고리별 뉴스를 한 번에 요청합니다.
+        const mainPageResponse = await fetch(`${baseUrl}?mode=all_categories_summary&date=${dateString}`);
 
-        if (!importantResponse.ok || !latestResponse.ok) {
-            console.error('API Error:', {
-                importantStatus: importantResponse.status,
-                latestStatus: latestResponse.status
-            });
+        if (!mainPageResponse.ok) {
+            console.error('API Error:', mainPageResponse.status);
             return;
         }
 
-        const importantNewsData = await importantResponse.json();
-        const latestNewsData = await latestResponse.json();
-    
-        // '뉴스 탐색'을 위해 두 데이터를 합치고 중복을 제거합니다.
-        const allNewsMap = new Map();
-        importantNewsData.forEach(news => allNewsMap.set(news.SK, news)); // SK를 고유 키로 사용
-        latestNewsData.forEach(news => allNewsMap.set(news.SK, news));
-        const combinedNewsData = Array.from(allNewsMap.values());
-        
-        // 초기 페이지 렌더링
-        // '오늘의 주요 뉴스'에는 중요도순 데이터를, '최신 뉴스'에는 최신순 데이터를 전달합니다.
+        const allNewsByCategory = await mainPageResponse.json();
+        const importantNewsData = Object.values(allNewsByCategory.important)
+            .flat()
+            .sort((a, b) => b.importance - a.importance);
+        const latestNewsData = Object.values(allNewsByCategory.latest)
+            .flat()
+            .sort((a, b) => new Date(b.pub_date) - new Date(a.pub_date));
+
+        // ⭐️ 2. 메인 페이지 렌더링
         renderTopNews(importantNewsData);
         renderLatestNews(latestNewsData);
-        renderExploreNews(combinedNewsData); // 탐색 페이지에는 통합된 데이터를 전달
-        showPage('main'); // 초기 페이지를 '메인'으로 설정
 
-        // 필터 적용 버튼 이벤트 리스너
-        document.getElementById('apply-filter').addEventListener('click', () => {
-            // 필터 적용 시에도 통합된 데이터를 사용합니다.
-            renderExploreNews(combinedNewsData);
-        });
+        // ⭐️ 3. 뉴스 탐색 페이지 초기 데이터 로드
+        await loadExploreNews(true); // isInitialLoad = true
+
+        // ⭐️ 4. 이벤트 리스너 설정
+        setupEventListeners(latestNewsData);
+
+        showPage('main');
 
     } catch (error) {
-        console.error('Fetch Error:', error);
+        console.error('Initialization Error:', error);
     }
 }
+
+    // 뉴스 탐색 페이지: 서버로부터 데이터를 가져오는 함수
+    async function loadExploreNews(isInitialLoad = false) {
+        if (isLoadingExplore) return; // 이미 로딩 중이면 중복 실행 방지
+        if (!isInitialLoad && !exploreLastKey) return; // 더 이상 불러올 데이터가 없으면 중단
+
+        isLoadingExplore = true;
+        const loadMoreBtn = document.querySelector('#load-more-container .load-more-btn');
+        if (loadMoreBtn) loadMoreBtn.textContent = '로딩 중...';
+
+        if (isInitialLoad) {
+            // ⭐️ 필터 변경 시, API를 기다리는 동안 로딩 메시지를 표시합니다.
+            document.getElementById('explore-results').innerHTML = '<p style="text-align: center; padding: 2rem;">뉴스를 불러오는 중입니다...</p>';
+            
+            exploreNews = []; // 필터 변경 시 기존 데이터 초기화
+            exploreLastKey = null;
+            exploreCurrentPage = 1; // 페이지 번호도 1로 초기화
+        }
+
+        // 필터 값 가져오기
+        const activeCategory = document.querySelector('#explore-category-filter-list .category-btn.active').dataset.category;
+        const sortBy = document.getElementById('sort-order').value;
+        // ⭐️ '더 보기'로 서버에서 가져올 뉴스 개수는 50개로 고정합니다.
+        // 'n개씩 보기'는 불러온 데이터를 화면에 어떻게 보여줄지만 결정합니다.
+        const API_FETCH_LIMIT = 50;
+
+        // API 요청 URL 생성
+        const today = new Date();
+        const baseUrl = `https://xxterco9tj.execute-api.ap-northeast-2.amazonaws.com/default/Access_DynamoDB`;
+        let url = `${baseUrl}?mode=explore&category=${encodeURIComponent(activeCategory)}&sortBy=${sortBy}&limit=${API_FETCH_LIMIT}`;
+
+        // ⭐️ '전체' 카테고리일 때만 date 파라미터를 추가합니다.
+        if (activeCategory === 'all') {
+            const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            url += `&date=${dateString}`;
+        }
+
+        // ⭐️ '더 보기' 요청일 때만 exclusiveStartKey를 추가합니다.
+        // 메인->탐색 직후 '더 보기'를 누르면 exploreLastKey가 null이므로, 2페이지부터 자연스럽게 로드됩니다.
+        // (DynamoDB는 ExclusiveStartKey가 없으면 첫 페이지부터 조회합니다)
+        if (!isInitialLoad && exploreLastKey) {
+            // ⭐️ 중요: API가 importance를 문자열로 반환하는 경우에 대한 방어 코드
+            // lastEvaluatedKey의 importance 값이 문자열이면 숫자로 변환합니다.
+            // 이렇게 하지 않으면 다음 페이지 요청 시 DynamoDB에서 타입 오류가 발생할 수 있습니다.
+            const keyToSend = { ...exploreLastKey };
+            if (keyToSend.importance && typeof keyToSend.importance === 'string') {
+                keyToSend.importance = parseInt(keyToSend.importance, 10);
+            }
+            url += `&exclusiveStartKey=${encodeURIComponent(JSON.stringify(keyToSend))}`;
+        }
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`API Error: ${response.status}`);
+
+            const { items, lastEvaluatedKey } = await response.json();
+            
+            // ⭐️ 초기 로드일 경우, 기존 데이터를 대체합니다.
+            if (isInitialLoad) {
+                exploreNews = items;
+            } else { // '더 보기' 시에는 항상 추가합니다. GSI를 사용하므로 중복 걱정이 없습니다.
+                exploreNews.push(...items);
+            }
+            exploreLastKey = lastEvaluatedKey; // 다음 페이지 토큰 업데이트
+
+            // ⭐️ '더 보기' 후에는 새로 불러온 뉴스가 포함된 마지막 페이지로 자동 이동합니다.
+            if (!isInitialLoad) {
+                exploreCurrentPage = Math.ceil(exploreNews.length / parseInt(document.getElementById('items-per-page').value, 10));
+            }
+            renderExploreNews(true); // 전체 UI를 다시 그려서 페이지 번호와 버튼을 정확하게 업데이트합니다.
+
+        } catch (error) {
+            console.error('Failed to load explore news:', error);
+        } finally {
+            isLoadingExplore = false; // 로딩 상태 해제
+        }
+    }
+
+    // 뉴스 탐색 페이지: 페이지네이션 UI를 렌더링하는 함수
+    function renderPagination() {
+        const paginationContainer = document.getElementById('pagination-container');
+        paginationContainer.innerHTML = '';
+
+        const itemsPerPage = parseInt(document.getElementById('items-per-page').value, 10);
+        const totalItems = exploreNews.length;
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        const currentPage = exploreCurrentPage;
+        const windowSize = 4; // 현재 페이지 좌우로 보여줄 페이지 번호 개수
+
+        if (totalPages <= 1) return; // 페이지가 하나 이하면 페이지네이션을 표시하지 않음
+
+        const createButton = (text, page, isActive = false, isDisabled = false) => {
+            const btn = document.createElement('button');
+            btn.textContent = text;
+            btn.classList.add('page-btn');
+            if (isActive) btn.classList.add('active');
+            if (isDisabled) btn.disabled = true;
+            else {
+                btn.addEventListener('click', () => {
+                    exploreCurrentPage = page;
+                    renderExploreNews(true);
+                });
+            }
+            return btn;
+        };
+
+        const createEllipsis = () => {
+            const span = document.createElement('span');
+            span.textContent = '...';
+            span.classList.add('page-ellipsis');
+            return span;
+        };
+
+        // "5페이지 이전" 버튼
+        paginationContainer.appendChild(createButton('<<', Math.max(1, currentPage - 5), false, currentPage <= 5));
+        // "이전" 버튼
+        paginationContainer.appendChild(createButton('<', currentPage - 1, false, currentPage === 1));
+
+        let hasLeftEllipsis = false;
+        let hasRightEllipsis = false;
+
+        for (let i = 1; i <= totalPages; i++) {
+            const isFirstPage = i === 1;
+            const isLastPage = i === totalPages;
+            const isInWindow = i >= currentPage - windowSize && i <= currentPage + windowSize;
+
+            if (isFirstPage || isLastPage || isInWindow) {
+                paginationContainer.appendChild(createButton(i, i, i === currentPage));
+            } else if (i < currentPage && !hasLeftEllipsis) {
+                paginationContainer.appendChild(createEllipsis());
+                hasLeftEllipsis = true;
+            } else if (i > currentPage && !hasRightEllipsis) {
+                paginationContainer.appendChild(createEllipsis());
+                hasRightEllipsis = true;
+            }
+        }
+
+        // "다음" 버튼
+        paginationContainer.appendChild(createButton('>', currentPage + 1, false, currentPage === totalPages));
+        // "5페이지 다음" 버튼
+        paginationContainer.appendChild(createButton('>>', Math.min(totalPages, currentPage + 5), false, currentPage >= totalPages - 4));
+    }
+
+    // 뉴스 탐색 페이지: 뉴스 목록과 '더 보기' 버튼을 렌더링하는 함수
+    function renderExploreNews(isFullRender = false) {
+        const resultsContainer = document.getElementById('explore-results'); 
+        const paginationContainer = document.getElementById('pagination-container');
+        const loadMoreContainer = document.getElementById('load-more-container');
+
+        // 페이지 번호와 '더 보기' 버튼 컨테이너만 초기화합니다.
+        // 뉴스 목록(resultsContainer)은 isFullRender가 아닐 때는 초기화하지 않아 스크롤 위치를 유지합니다.
+        paginationContainer.innerHTML = '';
+        loadMoreContainer.innerHTML = '';
+
+        // '더 보기'가 아닌, 페이지 이동이나 필터 변경 시에는 뉴스 목록을 비웁니다.
+        if (isFullRender) resultsContainer.innerHTML = '';
+
+        const itemsPerPage = parseInt(document.getElementById('items-per-page').value, 10);
+        const totalItems = exploreNews.length;
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+        // 현재 페이지에 맞는 뉴스만 잘라내서 보여주기
+        const startIndex = (exploreCurrentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedNews = exploreNews.slice(startIndex, endIndex);
+
+        // isFullRender일 때는 전체를, 아닐 때는 새로 추가된 부분만 렌더링합니다.
+        if (isFullRender) {
+            resultsContainer.innerHTML = paginatedNews.map(createNewsItemHTML).join('');
+        } else {
+            resultsContainer.insertAdjacentHTML('beforeend', paginatedNews.map(createNewsItemHTML).join(''));
+        }
+
+        // ⭐️ 개선된 페이지네이션 렌더링 함수 호출
+        renderPagination();
+        
+        // '더 보기' 버튼은 서버에 더 많은 데이터가 있고, 사용자가 마지막 페이지를 보고 있을 때만 표시
+        if (exploreLastKey && exploreCurrentPage === totalPages) {
+            const loadMoreBtn = document.createElement('button');
+            loadMoreBtn.textContent = '더 보기';
+            loadMoreBtn.classList.add('load-more-btn');
+            loadMoreBtn.addEventListener('click', () => loadExploreNews(false));
+            loadMoreContainer.appendChild(loadMoreBtn);
+        }
+
+        // 만약 뉴스가 하나도 없다면(초기 상태) '더 보기' 버튼을 표시
+        if (totalItems === 0) {
+            const loadMoreBtn = document.createElement('button');
+            loadMoreBtn.textContent = '뉴스 불러오기';
+            loadMoreBtn.classList.add('load-more-btn');
+            loadMoreBtn.addEventListener('click', () => loadExploreNews(false));
+            loadMoreContainer.appendChild(loadMoreBtn);
+        }
+    }
+    // 모든 이벤트 리스너를 설정하는 함수
+    function setupEventListeners(latestNewsData) {
+
+        // 뉴스 탐색 페이지: 필터 변경 시 즉시 재검색 (정렬, 보기 개수)
+        document.getElementById('sort-order').addEventListener('change', () => {
+            loadExploreNews(true);
+        });
+        document.getElementById('items-per-page').addEventListener('change', () => {
+            // 'n개씩 보기'는 API를 다시 호출하지 않고, 현재 로드된 데이터로 화면만 다시 렌더링합니다.
+            exploreCurrentPage = 1; // 보기 개수 변경 시 1페이지로 이동
+            renderExploreNews(true);
+        });
+
+        // 뉴스 탐색 페이지: 카테고리 필터 버튼 이벤트 리스너
+        const exploreCategoryList = document.getElementById('explore-category-filter-list');
+        exploreCategoryList.addEventListener('click', (event) => {
+            // ⭐️ 이미 활성화된 버튼을 다시 누르는 것은 무시하고, 'category-btn'일 때만 동작
+            if (event.target.classList.contains('category-btn') && !event.target.classList.contains('active')) {
+                // 모든 버튼에서 'active' 클래스 제거
+                exploreCategoryList.querySelectorAll('.category-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                // 클릭된 버튼에 'active' 클래스 추가
+                event.target.classList.add('active');
+                // ⭐️ 카테고리 변경 시 즉시 뉴스 다시 로드
+                loadExploreNews(true);
+            }
+        });
+
+        // 메인 페이지 카테고리 필터 이벤트 리스너
+        const mainCategoryList = document.getElementById('main-category-filter-list');
+        mainCategoryList.addEventListener('click', (event) => {
+            if (event.target.classList.contains('category-btn')) {
+                // 모든 버튼에서 'active' 클래스 제거
+                mainCategoryList.querySelectorAll('.category-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                // 클릭된 버튼에 'active' 클래스 추가
+                event.target.classList.add('active');
+
+                // 최신 뉴스 목록을 다시 렌더링
+                renderLatestNews(latestNewsData);
+            }
+        });
+
+        // 메인 페이지 '더 보기' 버튼 이벤트 리스너
+        document.getElementById('main-load-more-btn').addEventListener('click', () => {
+            // 1. 메인 페이지에서 활성화된 카테고리 가져오기
+            const mainActiveCategory = document.querySelector('#main-category-filter-list .category-btn.active');
+            const category = mainActiveCategory.dataset.category;
+
+            // 2. 뉴스 탐색 페이지의 카테고리 필터를 메인 페이지와 동기화합니다.
+            const exploreCategoryButtons = document.querySelectorAll('#explore-category-filter-list .category-btn');
+            exploreCategoryButtons.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.category === category);
+            });
+
+            // 3. 뉴스 탐색 페이지로 전환합니다.
+            showPage('explore');
+
+            // 4. 동기화된 카테고리로 뉴스 탐색 페이지의 데이터를 새로 불러옵니다.
+            //    이제 GSI를 사용하므로 메인 페이지와 일관된 결과를 얻을 수 있습니다.
+            loadExploreNews(true);
+        });
+
+        // 로고 클릭 시 메인 페이지로 이동
+        document.getElementById('logo-link').addEventListener('click', (event) => {
+            event.preventDefault();
+            showPage('main');
+        });
+
+        // 이벤트 위임을 사용하여 뉴스 아이템 클릭 처리
+        document.querySelector('main').addEventListener('click', (event) => {
+            const newsItem = event.target.closest('.news-item');
+            if (!newsItem) return;
+
+            // '기사 원문 보기' 링크는 기본 동작을 따름
+            if (event.target.closest('.news-link')) {
+                return;
+            }
+
+            // '관련 중요 뉴스 보기' 버튼 클릭 처리
+            if (event.target.classList.contains('related-news-btn')) {
+                event.stopPropagation(); // 이벤트 버블링을 막아 확장/축소 기능이 실행되지 않도록 함
+                const category = newsItem.dataset.category;
+                if (category) alert(`'${category}' 카테고리의 관련 중요 뉴스를 불러옵니다.`); // TODO: 모달 창으로 실제 기능 구현
+            } else {
+                // 그 외 뉴스 아이템 영역 클릭 시 확장/축소
+                newsItem.classList.toggle('expanded');
+            }
+        });
+    }
 
     initializeApp();
 });
