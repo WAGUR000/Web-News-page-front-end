@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     
         return `
-           <div class="news-item" data-category="${news.main_category}">
+           <div class="news-item" data-category="${news.main_category}" data-cluster-id="${news.clusterId || ''}">
                <h3>${news.title}</h3>
                <p>${news.topic || '주제 정보가 없습니다.'}</p>
                <div class="news-meta">
@@ -70,10 +70,14 @@ document.addEventListener('DOMContentLoaded', () => {
                    <span>${new Date(news.pub_date).toLocaleString()}</span>
                </div>
                <div class="news-details">
+                   <p class="news-description">${news.description || '상세 설명이 없습니다.'}</p>
                    <div class="details-footer">
                        <span class="sentiment ${sentimentClass}">${sentimentText}</span>
-                       <button class="related-news-btn">관련 중요 뉴스 보기</button>
                        <a href="${url}" target="_blank" class="news-link">기사 원문 보기 &rarr;</a>
+                   </div>
+                   <div class="related-news-container">
+                       <h4>관련 뉴스</h4>
+                       <div class="related-news-list"></div>
                    </div>
                </div>
            </div>
@@ -84,10 +88,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderTopNews(newsData) {
         const container = document.getElementById('top-news');
         // API에서 이미 중요도 순으로 정렬된 데이터를 받았으므로, 상위 6개만 잘라서 보여줍니다.
-        const topNews = newsData
-            .slice(0, 6);
+        // is_representative가 1이거나 없는 경우(이전 데이터)만 필터링합니다. (문자열 "0"도 고려하여 != 사용)
+        const representativeNews = newsData.filter(news => news.is_representative != 0);
         
-        container.innerHTML = topNews.map(createNewsItemHTML).join('');
+        container.innerHTML = representativeNews.slice(0, 6).map(createNewsItemHTML).join('');
     }
 
     // 메인 페이지: 최신 뉴스 렌더링
@@ -97,16 +101,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const activeCategoryButton = document.querySelector('#main-category-filter-list .category-btn.active');
         const category = activeCategoryButton ? activeCategoryButton.dataset.category : 'all';
 
-
-        let processedNews = [...newsData];
+        // is_representative가 1이거나 없는 경우(이전 데이터)만 필터링합니다. (문자열 "0"도 고려하여 != 사용)
+        let representativeNews = newsData.filter(news => news.is_representative != 0);
 
         // 카테고리 필터링
         if (category !== 'all') {
-            processedNews = processedNews.filter(news => news.main_category === category);
+            representativeNews = representativeNews.filter(news => news.main_category === category);
         }
 
         // API에서 이미 최신순으로 데이터를 받았으므로, 별도 정렬은 필요 없습니다.
-        container.innerHTML = processedNews.map(createNewsItemHTML).join('');
+        container.innerHTML = representativeNews.map(createNewsItemHTML).join('');
     }
 
     // --- 초기 데이터 로드 및 이벤트 리스너 설정 ---
@@ -130,10 +134,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const allNewsByCategory = await mainPageResponse.json();
-        const importantNewsData = Object.values(allNewsByCategory.important)
-            .flat()
+        // ⭐️ 전체 뉴스 데이터를 저장해두어 관련 뉴스 검색에 사용합니다.
+        const allMainPageNews = [
+            ...Object.values(allNewsByCategory.important).flat(),
+            ...Object.values(allNewsByCategory.latest).flat()
+        ];
+        const importantNewsData = allMainPageNews
             .sort((a, b) => b.importance - a.importance);
-        const latestNewsData = Object.values(allNewsByCategory.latest)
+        const latestNewsData = allMainPageNews
             .flat()
             .sort((a, b) => new Date(b.pub_date) - new Date(a.pub_date));
 
@@ -144,8 +152,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // ⭐️ 3. 뉴스 탐색 페이지 초기 데이터 로드
         await loadExploreNews(true); // isInitialLoad = true
 
-        // ⭐️ 4. 이벤트 리스너 설정
-        setupEventListeners(latestNewsData);
+        // ⭐️ 4. 이벤트 리스너 설정 (메인 페이지 전체 뉴스 데이터 전달)
+        setupEventListeners(allMainPageNews);
 
         showPage('main');
 
@@ -320,12 +328,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const paginatedNews = exploreNews.slice(startIndex, endIndex);
 
         // isFullRender일 때는 전체를, 아닐 때는 새로 추가된 부분만 렌더링합니다.
-        if (isFullRender) {
-            resultsContainer.innerHTML = paginatedNews.map(createNewsItemHTML).join('');
-        } else {
-            resultsContainer.insertAdjacentHTML('beforeend', paginatedNews.map(createNewsItemHTML).join(''));
-        }
+        // is_representative가 1이거나 없는 경우(이전 데이터)만 필터링하여 화면에 표시합니다. (문자열 "0"도 고려하여 != 사용)
+        const representativeNews = paginatedNews.filter(news => news.is_representative != 0);
 
+        if (isFullRender) {
+            resultsContainer.innerHTML = representativeNews.map(createNewsItemHTML).join('');
+        } else {
+            resultsContainer.insertAdjacentHTML('beforeend', representativeNews.map(createNewsItemHTML).join(''));
+        }
+        
         // ⭐️ 개선된 페이지네이션 렌더링 함수 호출
         renderPagination();
         
@@ -348,7 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     // 모든 이벤트 리스너를 설정하는 함수
-    function setupEventListeners(latestNewsData) {
+    function setupEventListeners(mainPageNewsData) {
 
         // 뉴스 탐색 페이지: 필터 변경 시 즉시 재검색 (정렬, 보기 개수)
         document.getElementById('sort-order').addEventListener('change', () => {
@@ -388,7 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 event.target.classList.add('active');
 
                 // 최신 뉴스 목록을 다시 렌더링
-                renderLatestNews(latestNewsData);
+                renderLatestNews(mainPageNewsData);
             }
         });
 
@@ -418,6 +429,51 @@ document.addEventListener('DOMContentLoaded', () => {
             showPage('main');
         });
 
+        // 관련 뉴스 아이템 HTML을 생성하는 함수
+        function createRelatedNewsItemHTML(news) {
+            const url = news.SK && news.SK.includes('#') ? news.SK.split('#')[1] : '#';
+            
+            let sentimentClass = '';
+            const parsedSentiment = parseFloat(news.sentiment);
+            const sentimentValue = !isNaN(parsedSentiment) ? parsedSentiment : 5.0;
+
+            if (sentimentValue >= 6.5) {
+                sentimentClass = 'sentiment-positive';
+            } else if (sentimentValue <= 3.5) {
+                sentimentClass = 'sentiment-negative';
+            }
+
+            return `
+                <div class="related-news-item">
+                    <span class="related-outlet">${news.outlet}</span>
+                    <span class="sentiment ${sentimentClass}">(${sentimentValue.toFixed(1)})</span>
+                    <a href="${url}" target="_blank" class="news-link">원문 보기</a>
+                </div>
+            `;
+        }
+
+        // 뉴스 아이템 확장 시 관련 뉴스를 찾는 함수
+        function findAndRenderRelatedNews(newsItem) {
+            const clusterId = newsItem.dataset.clusterId;
+            const relatedListContainer = newsItem.querySelector('.related-news-list');
+            
+            if (!clusterId || !relatedListContainer) return;
+
+            // 현재 페이지(메인/탐색)에 로드된 전체 뉴스 목록에서 관련 뉴스를 찾습니다.
+            const currentPageId = document.querySelector('.page.active').id;
+            const sourceNewsData = (currentPageId === 'main-page') ? mainPageNewsData : exploreNews;
+
+            const relatedNews = sourceNewsData.filter(news => 
+                news.clusterId === clusterId && // 같은 클러스터 ID를 가지고
+                news.is_representative === 0      // 대표 뉴스가 아닌(is_representative=0) 뉴스
+            );
+
+            if (relatedNews.length > 0) {
+                relatedListContainer.innerHTML = relatedNews.map(createRelatedNewsItemHTML).join('');
+            } else {
+                relatedListContainer.innerHTML = '<p style="font-size: 0.85rem; color: #888; margin: 0;">관련 뉴스가 없습니다.</p>';
+            }
+        }
         // 이벤트 위임을 사용하여 뉴스 아이템 클릭 처리
         document.querySelector('main').addEventListener('click', (event) => {
             const newsItem = event.target.closest('.news-item');
@@ -428,14 +484,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // '관련 중요 뉴스 보기' 버튼 클릭 처리
-            if (event.target.classList.contains('related-news-btn')) {
-                event.stopPropagation(); // 이벤트 버블링을 막아 확장/축소 기능이 실행되지 않도록 함
-                const category = newsItem.dataset.category;
-                if (category) alert(`'${category}' 카테고리의 관련 중요 뉴스를 불러옵니다.`); // TODO: 모달 창으로 실제 기능 구현
-            } else {
-                // 그 외 뉴스 아이템 영역 클릭 시 확장/축소
-                newsItem.classList.toggle('expanded');
+            // 뉴스 아이템 확장/축소
+            const isExpanding = !newsItem.classList.contains('expanded');
+            newsItem.classList.toggle('expanded');
+
+            // ⭐️ 뉴스를 확장할 때만 관련 뉴스를 찾아서 렌더링합니다.
+            // (축소할 때는 불필요한 작업을 피합니다)
+            if (isExpanding) {
+                findAndRenderRelatedNews(newsItem);
             }
         });
     }

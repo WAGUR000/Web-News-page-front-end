@@ -139,11 +139,32 @@ h2 {
     transition: max-height 0.5s ease-out, margin-top 0.5s ease-out;
 }
 
+.news-details .news-sub-meta {
+    font-size: 0.85rem;
+    color: #777;
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    padding: 0.75rem 0;
+}
+
+.news-details .news-description {
+    margin: 0 0 1rem 0;
+    color: #555;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
 .news-item.expanded .news-details {
-    max-height: 500px; /* 내용이 충분히 들어갈 수 있는 큰 값 */
+    max-height: 1000px; /* 내용이 충분히 들어갈 수 있는 큰 값 (관련뉴스 포함) */
     margin-top: 1rem; /* 제목과 확장된 내용 사이의 간격 */
     transition: max-height 0.5s ease-in, margin-top 0.5s ease-in;
 }
+
+
 
 /* 확장된 상세 정보의 하단 (감정, 원문 링크) */
 .details-footer {
@@ -177,21 +198,40 @@ h2 {
     text-decoration: underline;
 }
 
-/* 관련 뉴스 보기 버튼 */
-.related-news-btn {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.8rem;
-    font-weight: bold;
-    color: #28a745; /* 초록색 계열 */
-    background-color: #fff;
-    border: 1px solid #28a745;
-    border-radius: 15px;
-    cursor: pointer;
-    transition: background-color 0.3s, color 0.3s;
+/* 관련 뉴스 컨테이너 */
+.related-news-container {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
 }
-.related-news-btn:hover {
-    background-color: #28a745;
-    color: #fff;
+
+.related-news-container h4 {
+    margin: 0 0 0.75rem 0;
+    font-size: 0.9rem;
+    color: #333;
+}
+
+.related-news-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.related-news-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    padding: 0.5rem;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+    justify-content: space-between;
+}
+
+.related-news-item .related-outlet {
+    font-weight: 600;
+    color: #444;
+    flex-shrink: 0; /* 언론사 이름이 줄어들지 않도록 */
 }
 
 /* 뉴스 탐색 필터 */
