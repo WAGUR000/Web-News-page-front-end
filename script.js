@@ -71,6 +71,10 @@ document.addEventListener('DOMContentLoaded', () => {
                </div>
                <div class="news-details">
                    <p class="news-description">${news.description || '상세 설명이 없습니다.'}</p>
+                   <div class="news-sub-meta">
+                       <span>언론사: <strong>${news.outlet || '정보 없음'}</strong></span>
+                       <span>소분류: <strong>${news.sub_category || '정보 없음'}</strong></span>
+                   </div>
                    <div class="details-footer">
                        <span class="sentiment ${sentimentClass}">${sentimentText}</span>
                        <a href="${url}" target="_blank" class="news-link">기사 원문 보기 &rarr;</a>
@@ -135,14 +139,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const allNewsByCategory = await mainPageResponse.json();
         // ⭐️ 전체 뉴스 데이터를 저장해두어 관련 뉴스 검색에 사용합니다.
-        const allMainPageNews = [
+        const combinedNews = [
             ...Object.values(allNewsByCategory.important).flat(),
             ...Object.values(allNewsByCategory.latest).flat()
         ];
-        const importantNewsData = allMainPageNews
+
+        // ⭐️ 중요: 'important'와 'latest'에 중복된 뉴스가 있을 수 있으므로, SK를 기준으로 중복을 제거합니다.
+        const allMainPageNews = combinedNews.filter((news, index, self) =>
+            index === self.findIndex(n => n.SK === news.SK)
+        );
+
+        // ⭐️ 중요: .sort()는 원본 배열을 변경하므로, [...allMainPageNews]로 복사본을 만들어 정렬합니다.
+        // 이렇게 해야 allMainPageNews 배열의 순서가 유지됩니다.
+        const importantNewsData = [...allMainPageNews]
             .sort((a, b) => b.importance - a.importance);
-        const latestNewsData = allMainPageNews
-            .flat()
+        const latestNewsData = [...allMainPageNews]
             .sort((a, b) => new Date(b.pub_date) - new Date(a.pub_date));
 
         // ⭐️ 2. 메인 페이지 렌더링
@@ -152,8 +163,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // ⭐️ 3. 뉴스 탐색 페이지 초기 데이터 로드
         await loadExploreNews(true); // isInitialLoad = true
 
-        // ⭐️ 4. 이벤트 리스너 설정 (메인 페이지 전체 뉴스 데이터 전달)
-        setupEventListeners(allMainPageNews);
+        // ⭐️ 4. 이벤트 리스너 설정 (메인 페이지용으로는 '최신순 정렬'된 데이터를 전달)
+        setupEventListeners(latestNewsData, allMainPageNews);
 
         showPage('main');
 
@@ -359,7 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     // 모든 이벤트 리스너를 설정하는 함수
-    function setupEventListeners(mainPageNewsData) {
+    function setupEventListeners(mainPageLatestNews, allMainPageNews) {
 
         // 뉴스 탐색 페이지: 필터 변경 시 즉시 재검색 (정렬, 보기 개수)
         document.getElementById('sort-order').addEventListener('change', () => {
@@ -399,7 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 event.target.classList.add('active');
 
                 // 최신 뉴스 목록을 다시 렌더링
-                renderLatestNews(mainPageNewsData);
+                renderLatestNews(mainPageLatestNews);
             }
         });
 
@@ -445,9 +456,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             return `
                 <div class="related-news-item">
-                    <span class="related-outlet">${news.outlet}</span>
-                    <span class="sentiment ${sentimentClass}">(${sentimentValue.toFixed(1)})</span>
-                    <a href="${url}" target="_blank" class="news-link">원문 보기</a>
+                    <span class="related-title" title="${news.title}">${news.title}</span>
+                    <div class="related-info">
+                        <span class="related-outlet">${news.outlet}</span>
+                        <span class="sentiment ${sentimentClass}">(${sentimentValue.toFixed(1)})</span>
+                        <a href="${url}" target="_blank" class="news-link">원문 보기</a>
+                    </div>
                 </div>
             `;
         }
@@ -461,11 +475,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // 현재 페이지(메인/탐색)에 로드된 전체 뉴스 목록에서 관련 뉴스를 찾습니다.
             const currentPageId = document.querySelector('.page.active').id;
-            const sourceNewsData = (currentPageId === 'main-page') ? mainPageNewsData : exploreNews;
+            const sourceNewsData = (currentPageId === 'main-page') ? allMainPageNews : exploreNews;
 
             const relatedNews = sourceNewsData.filter(news => 
                 news.clusterId === clusterId && // 같은 클러스터 ID를 가지고
-                news.is_representative === 0      // 대표 뉴스가 아닌(is_representative=0) 뉴스
+                news.is_representative == 0      // 대표 뉴스가 아닌(is_representative=0) 뉴스 (문자열 "0"도 고려하여 == 사용)
             );
 
             if (relatedNews.length > 0) {

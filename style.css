@@ -151,6 +151,11 @@ h2 {
     padding: 0.75rem 0;
 }
 
+.news-details .news-sub-meta strong {
+    color: #333;
+    font-weight: 600;
+}
+
 .news-details .news-description {
     margin: 0 0 1rem 0;
     color: #555;
@@ -225,13 +230,28 @@ h2 {
     padding: 0.5rem;
     background-color: #f9f9f9;
     border-radius: 4px;
-    justify-content: space-between;
+    justify-content: space-between; /* 자식 요소들을 양 끝으로 정렬 */
+}
+
+.related-news-item .related-title {
+    flex-grow: 1; /* 가능한 많은 공간을 차지하도록 설정 */
+    white-space: nowrap; /* 제목이 길어도 한 줄로 표시 */
+    overflow: hidden; /* 넘치는 텍스트 숨기기 */
+    text-overflow: ellipsis; /* 넘치는 텍스트를 ...으로 표시 */
+    margin-right: 1rem; /* 오른쪽 정보와의 간격 */
+    color: #333;
+}
+
+.related-news-item .related-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0; /* 공간이 부족해도 줄어들지 않도록 설정 */
 }
 
 .related-news-item .related-outlet {
     font-weight: 600;
     color: #444;
-    flex-shrink: 0; /* 언론사 이름이 줄어들지 않도록 */
 }
 
 /* 뉴스 탐색 필터 */
