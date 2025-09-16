@@ -43,17 +43,22 @@ document.addEventListener('DOMContentLoaded', () => {
         // ⭐️ SK 값에서 '#' 뒤의 URL을 추출합니다. URL이 없으면 '#'을 기본값으로 사용합니다.
         const url = news.SK && news.SK.includes('#') ? news.SK.split('#')[1] : '#';
 
-        // 감정 분석 클래스 및 텍스트 설정
+        // 감정 분석 클래스 및 텍스트 설정 (0.0 ~ 10.0 숫자 값 기준)
         let sentimentClass = '';
-        // DynamoDB에서 'sentiment' 필드가 없을 경우를 대비해 기본값을 '중립'으로 설정합니다.
-        const sentiment = news.sentiment || '중립'; 
+        let sentimentText = '';
+        // sentiment 값을 숫자로 변환하고, 유효하지 않은 값(NaN)일 경우 기본값 5.0(중립)을 사용합니다.
+        const parsedSentiment = parseFloat(news.sentiment);
+        const sentimentValue = !isNaN(parsedSentiment) ? parsedSentiment : 5.0;
 
-        if (sentiment === '긍정') {
+        if (sentimentValue >= 6.5) { // 긍정: 6.5 ~ 10.0
             sentimentClass = 'sentiment-positive';
-        } else if (sentiment === '부정') {
+            sentimentText = `긍정(${sentimentValue.toFixed(1)})`;
+        } else if (sentimentValue <= 3.5) { // 부정: 0.0 ~ 3.5
             sentimentClass = 'sentiment-negative';
+            sentimentText = `부정(${sentimentValue.toFixed(1)})`;
+        } else { // 중립: 4.0 ~ 6.0
+            sentimentText = `중립(${sentimentValue.toFixed(1)})`;
         }
-        // '중립'은 기본 색상이므로 별도 클래스가 필요 없습니다.
     
         return `
            <div class="news-item" data-category="${news.main_category}">
@@ -66,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
                </div>
                <div class="news-details">
                    <div class="details-footer">
-                       <span class="sentiment ${sentimentClass}"> ${sentiment}</span>
+                       <span class="sentiment ${sentimentClass}">${sentimentText}</span>
                        <button class="related-news-btn">관련 중요 뉴스 보기</button>
                        <a href="${url}" target="_blank" class="news-link">기사 원문 보기 &rarr;</a>
                    </div>
