@@ -50,3 +50,11 @@ export async function fetchExploreNews({ category, sortBy, limit, date, exclusiv
     const response = await fetch(`${BASE_URL}?${params.toString()}`);
     return handleApiResponse(response);
 }
+
+const ANALYTICS_API_URL = "https://xxterco9tj.execute-api.ap-northeast-2.amazonaws.com/default/Request_Analysis_Lambda"; 
+
+export async function fetchAnalyticsData() {
+    const response = await fetch(ANALYTICS_API_URL);
+    // 기존에 있던 handleApiResponse 함수를 재사용합니다.
+    return handleApiResponse(response);
+}

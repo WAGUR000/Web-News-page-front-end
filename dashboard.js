@@ -132,3 +132,4 @@ function renderClusterList(clusters) {
         container.appendChild(div);
     });
 }
+

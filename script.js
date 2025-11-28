@@ -1,5 +1,6 @@
 import { createNewsItemHTML, renderTopNews, renderLatestNews, renderExploreNews, showPage } from './ui.js';
 import { fetchMainPageNews, fetchExploreNews } from './api.js';
+import { renderDashboard } from './dashboard.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- 페이지 네비게이션 로직 ---
@@ -7,15 +8,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const pages = document.querySelectorAll('.page');
 
     // ⭐️ showPage에 필요한 변수들을 미리 전달합니다.
-    navLinks.forEach(link => {
-        link.addEventListener('click', (event) => {
+navLinks.forEach(link => {
+        link.addEventListener('click', async (event) => { // async 키워드 추가 (비동기 함수 호출 위해)
             event.preventDefault();
             const pageId = event.target.dataset.page;
-            // ⭐️ 클릭 시 showPage 함수에 pages와 navLinks를 함께 전달해야 합니다.
+            
+            // 기존 페이지 전환 함수 호출
             showPage(pageId, pages, navLinks);
+
+            // [변경 3] 만약 클릭한 페이지가 'analysis'(분석)라면 데이터를 로드합니다.
+            if (pageId === 'analysis') {
+                await loadAnalyticsPage();
+            }
         });
     });
-
     // --- 뉴스 탐색 페이지 상태 ---
     // '더 보기' 기능으로 변경되면서 클라이언트 측 페이지네이션 상태는 제거됩니다.
     // 서버로부터 데이터를 받아와 관리하기 위한 새로운 상태 변수들입니다.
@@ -293,3 +299,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initializeApp();
 });
+
+
+
+async function loadAnalyticsPage() {
+    try {
+        console.log("분석 데이터 로딩 중...");
+        // 1. API 호출
+        const data = await fetchAnalyticsData();
+        // 2. 받아온 데이터를 dashboard.js의 렌더링 함수에 전달
+        renderDashboard(data);
+    } catch (error) {
+        console.error("분석 데이터 로드 실패:", error);
+        // 필요하다면 여기에 에러 메시지를 화면에 띄우는 로직 추가 가능
+    }
+}
