@@ -1,4 +1,4 @@
-const BASE_URL = `https://xxterco9tj.execute-api.ap-northeast-2.amazonaws.com/default/Access_DynamoDB`;
+const BASE_URL = "https://xxterco9tj.execute-api.ap-northeast-2.amazonaws.com/default/Access_DynamoDB";
 const ANALYTICS_API_URL = "https://xxterco9tj.execute-api.ap-northeast-2.amazonaws.com/default/Request_Analysis_Lambda"; 
 
 /**
