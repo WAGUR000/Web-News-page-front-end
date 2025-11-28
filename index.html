@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Today News Service</title>
     <link rel="stylesheet" href="style.css">
-    <!-- [추가] Chart.js 라이브러리 -->
+    <!-- Chart.js 추가 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -22,12 +22,10 @@
     </header>
 
     <main>
-        <!-- 메인 페이지 (원본 유지) -->
+        <!-- 메인 페이지 -->
         <section id="main-page" class="page active">
             <h2>오늘의 주요 뉴스</h2>
-            <div id="top-news" class="news-grid">
-                <!-- JS로 로드됨 -->
-            </div>
+            <div id="top-news" class="news-grid"></div>
             
             <h2>최신 뉴스 라인</h2>
             <div class="category-filter-container" id="main-category-filter-list">
@@ -40,12 +38,10 @@
                 <button class="category-btn" data-category="연예">연예</button>
                 <button class="category-btn" data-category="스포츠">스포츠</button>
             </div>
-            <div id="latest-news" class="news-list">
-                <!-- JS로 로드됨 -->
-            </div>
+            <div id="latest-news" class="news-list"></div>
         </section>
 
-        <!-- 뉴스 탐색 페이지 (원본 유지) -->
+        <!-- 뉴스 탐색 페이지 -->
         <section id="explore-page" class="page">
             <h2>뉴스 탐색</h2>
             <div class="filter-container">
@@ -63,23 +59,14 @@
                             <option value="important">중요도순</option>
                         </select>
                     </div>
-                    <div class="pagination-controls">
-                        <select id="items-per-page">
-                            <option value="10" selected>10개씩 보기</option>
-                            <option value="30">30개씩 보기</option>
-                            <option value="50">50개씩 보기</option>
-                        </select>
-                    </div>
+                    <!-- 페이지네이션 컨트롤 제거 (더 보기 방식으로 변경됨) -->
                 </div>
             </div>
-            <div id="explore-results" class="news-list">
-                <!-- JS로 로드됨 -->
-            </div>
+            <div id="explore-results" class="news-list"></div>
             <div id="load-more-container" class="load-more-container"></div>
-            <div id="pagination-container"></div>
         </section>
 
-        <!-- [수정됨] 뉴스 분석 페이지 (대시보드 UI) -->
+        <!-- [수정] 뉴스 분석 페이지 -->
         <section id="analysis-page" class="page">
             <div class="analysis-header">
                 <h2>실시간 뉴스 트렌드 분석</h2>

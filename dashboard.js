@@ -1,8 +1,7 @@
-// Chart.js 인스턴스 변수 (중복 생성 방지)
+// Chart.js 인스턴스 변수
 let trendChartInstance = null;
 let keywordChartInstance = null;
 
-// 메인 렌더링 함수
 export function renderDashboard(data) {
     if (!data) return;
     renderSummary(data.chart_24h);
@@ -11,7 +10,6 @@ export function renderDashboard(data) {
     renderClusterList(data.trend_3h.clusters);
 }
 
-// 1. 상단 요약 정보
 function renderSummary(hourlyData) {
     if (!hourlyData || hourlyData.length === 0) return;
 
@@ -32,12 +30,10 @@ function renderSummary(hourlyData) {
     }
 }
 
-// 2. 24시간 추이 차트
 function renderTrendChart(hourlyData) {
-    const canvas = document.getElementById('trendChart24h');
-    if (!canvas) return;
+    const ctx = document.getElementById('trendChart24h');
+    if (!ctx) return;
 
-    const ctx = canvas.getContext('2d');
     if (trendChartInstance) trendChartInstance.destroy();
 
     const labels = hourlyData.map(d => d.time);
@@ -80,12 +76,10 @@ function renderTrendChart(hourlyData) {
     });
 }
 
-// 3. 키워드 차트
 function renderKeywordChart(keywords) {
-    const canvas = document.getElementById('keywordChart3h');
-    if (!canvas) return;
+    const ctx = document.getElementById('keywordChart3h');
+    if (!ctx) return;
 
-    const ctx = canvas.getContext('2d');
     if (keywordChartInstance) keywordChartInstance.destroy();
 
     const topKeywords = keywords.slice(0, 10);
@@ -111,13 +105,11 @@ function renderKeywordChart(keywords) {
     });
 }
 
-// 4. 이슈 리스트
 function renderClusterList(clusters) {
     const container = document.getElementById('cluster-list');
     if (!container) return;
     
     container.innerHTML = '';
-
     if (!clusters || clusters.length === 0) {
         container.innerHTML = '<div style="padding:10px; color:#888;">데이터가 없습니다.</div>';
         return;
