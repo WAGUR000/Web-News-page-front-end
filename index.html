@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Today News Service</title>
+    <title> News Service</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Chart.js 추가 -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -22,10 +20,10 @@
     </header>
 
     <main>
-        <!-- 메인 페이지 -->
         <section id="main-page" class="page active">
             <h2>오늘의 주요 뉴스</h2>
-            <div id="top-news" class="news-grid"></div>
+            <div id="top-news" class="news-grid">
+                </div>
             
             <h2>최신 뉴스 라인</h2>
             <div class="category-filter-container" id="main-category-filter-list">
@@ -33,23 +31,31 @@
                 <button class="category-btn" data-category="정치">정치</button>
                 <button class="category-btn" data-category="경제">경제</button>
                 <button class="category-btn" data-category="사회">사회</button>
-                <button class="category-btn" data-category="국제">국제</button>
                 <button class="category-btn" data-category="IT/과학">IT/과학</button>
+                <button class="category-btn" data-category="문화/생활">문화/생활</button>
                 <button class="category-btn" data-category="연예">연예</button>
                 <button class="category-btn" data-category="스포츠">스포츠</button>
+                <button class="category-btn" data-category="국제">국제</button>
             </div>
-            <div id="latest-news" class="news-list"></div>
+            <div id="latest-news" class="news-list">
+                </div>
+            <div class="load-more-container">
+                <button id="main-load-more-btn" class="load-more-btn">더 보기</button>
+            </div>
         </section>
 
-        <!-- 뉴스 탐색 페이지 -->
         <section id="explore-page" class="page">
             <h2>뉴스 탐색</h2>
-            <div class="filter-container">
-                <div class="category-filters" id="explore-category-filter-list">
+            <div class="explore-filters">
+                <div class="category-filter-container" id="explore-category-filter-list">
                     <button class="category-btn active" data-category="all">전체</button>
                     <button class="category-btn" data-category="정치">정치</button>
                     <button class="category-btn" data-category="경제">경제</button>
                     <button class="category-btn" data-category="사회">사회</button>
+                    <button class="category-btn" data-category="IT/과학">IT/과학</button>
+                    <button class="category-btn" data-category="문화/생활">문화/생활</button>
+                    <button class="category-btn" data-category="연예">연예</button>
+                    <button class="category-btn" data-category="스포츠">스포츠</button>
                     <button class="category-btn" data-category="국제">국제</button>
                 </div>
                 <div class="explore-controls-container">
@@ -59,54 +65,26 @@
                             <option value="important">중요도순</option>
                         </select>
                     </div>
-                    <!-- 페이지네이션 컨트롤 제거 (더 보기 방식으로 변경됨) -->
+                    <div class="pagination-controls">
+                        <select id="items-per-page">
+                            <option value="10" selected>10개씩 보기</option>
+                            <option value="30">30개씩 보기</option>
+                            <option value="50">50개씩 보기</option>
+                        </select>
+                    </div>
                 </div>
             </div>
-            <div id="explore-results" class="news-list"></div>
+            <div id="explore-results" class="news-list">
+                </div>
             <div id="load-more-container" class="load-more-container"></div>
+            <div id="pagination-container"></div>
         </section>
 
-        <!-- [수정] 뉴스 분석 페이지 -->
         <section id="analysis-page" class="page">
-            <div class="analysis-header">
-                <h2>실시간 뉴스 트렌드 분석</h2>
-                <p class="update-time">최근 24시간 및 실시간 3시간 데이터 기준</p>
-            </div>
-
-            <div class="stats-summary-container">
-                <div class="stat-card">
-                    <h3>24시간 총 기사</h3>
-                    <p id="stat-total-vol">- 건</p>
-                </div>
-                <div class="stat-card">
-                    <h3>평균 중요도</h3>
-                    <p id="stat-avg-imp">- / 10</p>
-                </div>
-                <div class="stat-card">
-                    <h3>평균 감성지수</h3>
-                    <p id="stat-avg-sent">- / 10</p>
-                </div>
-            </div>
-
-            <div class="charts-grid">
-                <div class="chart-container full-width">
-                    <h3>📊 시간대별 기사량 및 감성 추이 (24H)</h3>
-                    <div class="canvas-wrapper">
-                        <canvas id="trendChart24h"></canvas>
-                    </div>
-                </div>
-                <div class="chart-container half-width">
-                    <h3>🔥 실시간 급상승 키워드 (3H)</h3>
-                    <div class="canvas-wrapper">
-                        <canvas id="keywordChart3h"></canvas>
-                    </div>
-                </div>
-                <div class="chart-container half-width">
-                    <h3>🗞️ 실시간 핵심 이슈 (Top 5)</h3>
-                    <div id="cluster-list" class="cluster-list">
-                        <div class="loading-spinner">데이터를 불러오는 중...</div>
-                    </div>
-                </div>
+            <h2>뉴스 분석 (준비중)</h2>
+            <p>일간, 주간, 월간 뉴스 트렌드 분석 기능이 추가될 예정입니다.</p>
+            <div class="analysis-placeholder">
+                📊
             </div>
         </section>
     </main>
