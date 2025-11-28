@@ -293,3 +293,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initializeApp();
 });
+async function loadAnalyticsPage() {
+    try {
+        console.log("분석 데이터 로딩...");
+        const data = await fetchAnalyticsData();
+        renderDashboard(data);
+    } catch (error) {
+        console.error("분석 데이터 로드 실패:", error);
+    }
+}

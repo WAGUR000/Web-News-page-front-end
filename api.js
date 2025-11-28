@@ -27,16 +27,7 @@ export async function fetchMainPageNews(dateString) {
     return handleApiResponse(response);
 }
 
-/**
- * 뉴스 탐색 페이지의 뉴스 데이터를 필터에 맞게 가져옵니다.
- * @param {object} params - API 요청 파라미터
- * @param {string} params.category - 뉴스 카테고리
- * @param {string} params.sortBy - 정렬 기준 ('latest' 또는 'important')
- * @param {number} params.limit - 가져올 뉴스 개수
- * @param {string} [params.date] - 'YYYY-MM-DD' 형식의 날짜 문자열 (주로 'all' 카테고리용)
- * @param {object} [params.exclusiveStartKey] - 페이지네이션을 위한 DynamoDB의 exclusiveStartKey
- * @returns {Promise<{items: Array<object>, lastEvaluatedKey: object}>} 뉴스 목록과 다음 페이지 토큰
- */
+
 export async function fetchExploreNews({ category, sortBy, limit, date, exclusiveStartKey }) {
     const params = new URLSearchParams({
         mode: 'explore',
@@ -48,5 +39,9 @@ export async function fetchExploreNews({ category, sortBy, limit, date, exclusiv
     if (exclusiveStartKey) params.append('exclusiveStartKey', JSON.stringify(exclusiveStartKey));
 
     const response = await fetch(`${BASE_URL}?${params.toString()}`);
+    return handleApiResponse(response);
+}
+export async function fetchAnalyticsData() {
+    const response = await fetch(ANALYTICS_API_URL);
     return handleApiResponse(response);
 }
