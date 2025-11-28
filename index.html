@@ -81,7 +81,7 @@
             <div id="pagination-container"></div>
         </section>
 
- <section id="analysis-page" class="page">
+        <section id="analysis-page" class="page">
             <div class="analysis-header">
                 <h2>실시간 뉴스 트렌드 분석</h2>
                 <p class="update-time">최근 24시간 및 실시간 3시간 데이터 기준</p>
@@ -103,35 +103,28 @@
             </div>
 
             <div class="charts-grid">
-                <!-- 1. 시간대별 차트 -->
                 <div class="chart-container full-width">
                     <h3>📊 시간대별 기사량 및 감성 추이 (24H)</h3>
                     <div class="canvas-wrapper">
                         <canvas id="trendChart24h"></canvas>
                     </div>
                 </div>
-
-                <!-- 2. 급상승 키워드 차트 -->
                 <div class="chart-container half-width">
                     <h3>🔥 실시간 급상승 키워드 (3H)</h3>
                     <div class="canvas-wrapper">
                         <canvas id="keywordChart3h"></canvas>
                     </div>
                 </div>
-
-                <!-- 3. [신규] 군집(이슈) 분석 차트 (버블차트 + 리스트) -->
                 <div class="chart-container half-width">
-                    <h3>🗞️ 핵심 이슈 분포 (감성 vs 중요도)</h3>
-                    <div class="canvas-wrapper">
-                        <canvas id="clusterChart"></canvas>
-                    </div>
-                </div>
-                
-                <!-- 4. 군집 리스트 -->
-                <div class="chart-container full-width">
-                    <h3>📋 핵심 이슈 상세 (Top 5)</h3>
+                    <h3>🗞️ 실시간 핵심 이슈 (Top 5)</h3>
                     <div id="cluster-list" class="cluster-list">
                         <div class="loading-spinner">데이터를 불러오는 중...</div>
+                    </div>
+                </div>
+                <div class="chart-container half-width">
+                    <h3>🫧 이슈 분포도 (감성 / 중요도)</h3>
+                    <div class="canvas-wrapper">
+                        <canvas id="clusterChart"></canvas>
                     </div>
                 </div>
             </div>
