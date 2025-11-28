@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title> News Service</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -81,10 +82,45 @@
         </section>
 
         <section id="analysis-page" class="page">
-            <h2>뉴스 분석 (준비중)</h2>
-            <p>일간, 주간, 월간 뉴스 트렌드 분석 기능이 추가될 예정입니다.</p>
-            <div class="analysis-placeholder">
-                📊
+            <div class="analysis-header">
+                <h2>실시간 뉴스 트렌드 분석</h2>
+                <p class="update-time">최근 24시간 및 실시간 3시간 데이터 기준</p>
+            </div>
+
+            <div class="stats-summary-container">
+                <div class="stat-card">
+                    <h3>24시간 총 기사</h3>
+                    <p id="stat-total-vol">- 건</p>
+                </div>
+                <div class="stat-card">
+                    <h3>평균 중요도</h3>
+                    <p id="stat-avg-imp">- / 10</p>
+                </div>
+                <div class="stat-card">
+                    <h3>평균 감성지수</h3>
+                    <p id="stat-avg-sent">- / 10</p>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-container full-width">
+                    <h3>📊 시간대별 기사량 및 감성 추이 (24H)</h3>
+                    <div class="canvas-wrapper">
+                        <canvas id="trendChart24h"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container half-width">
+                    <h3>🔥 실시간 급상승 키워드 (3H)</h3>
+                    <div class="canvas-wrapper">
+                        <canvas id="keywordChart3h"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container half-width">
+                    <h3>🗞️ 실시간 핵심 이슈 (Top 5)</h3>
+                    <div id="cluster-list" class="cluster-list">
+                        <div class="loading-spinner">데이터를 불러오는 중...</div>
+                    </div>
+                </div>
             </div>
         </section>
     </main>
