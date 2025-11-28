@@ -4,7 +4,7 @@ name: Deploy Frontend to AWS S3
 on:
   push:
     branches:
-      - main
+      - analyze
 
 # OIDC 인증을 위한 권한 설정
 permissions:
