@@ -1,5 +1,5 @@
 import { createNewsItemHTML, renderTopNews, renderLatestNews, renderExploreNews, showPage } from './ui.js';
-import { fetchMainPageNews, fetchExploreNews } from './api.js';
+import { fetchMainPageNews, fetchExploreNews,fetchAnalyticsData } from './api.js';
 import { renderDashboard } from './dashboard.js';
 
 document.addEventListener('DOMContentLoaded', () => {
