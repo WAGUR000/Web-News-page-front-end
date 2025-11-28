@@ -1,4 +1,5 @@
 const BASE_URL = `https://xxterco9tj.execute-api.ap-northeast-2.amazonaws.com/default/Access_DynamoDB`;
+const ANALYTICS_API_URL = "https://xxterco9tj.execute-api.ap-northeast-2.amazonaws.com/default/Request_Analysis_Lambda"; 
 
 /**
  * API 요청 중 발생하는 에러를 처리하고 응답을 JSON으로 파싱하는 헬퍼 함수
@@ -49,4 +50,37 @@ export async function fetchExploreNews({ category, sortBy, limit, date, exclusiv
 
     const response = await fetch(`${BASE_URL}?${params.toString()}`);
     return handleApiResponse(response);
+}
+export async function fetchAnalyticsData() {
+    // 실제 API가 준비되지 않았다면 테스트용 URL이나 모의 데이터를 사용하세요.
+    // const response = await fetch(ANALYTICS_API_URL);
+    // return handleApiResponse(response);
+    
+    // [테스트용 임시 코드 - API 연결 전까지 사용]
+    // Reader Lambda 테스트 결과를 그대로 리턴하는 흉내를 냅니다.
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve({
+                chart_24h: [
+                    { time: "10시", volume: 120, avgSentiment: 5.5, avgImportance: 6.0 },
+                    { time: "11시", volume: 150, avgSentiment: 4.2, avgImportance: 7.5 },
+                    { time: "12시", volume: 200, avgSentiment: 6.8, avgImportance: 5.2 },
+                    { time: "13시", volume: 180, avgSentiment: 5.9, avgImportance: 6.1 },
+                    { time: "14시", volume: 300, avgSentiment: 5.84, avgImportance: 6.72 }
+                ],
+                trend_3h: {
+                    keywords: [
+                        { keyword: "홍콩", count: 50 }, { keyword: "화재", count: 45 },
+                        { keyword: "AI", count: 30 }, { keyword: "구세군", count: 20 },
+                        { keyword: "국회", count: 15 }
+                    ],
+                    clusters: [
+                        { title: "홍콩 아파트 대형 화재 참사", imp: 8.5, sent: 2.1 },
+                        { title: "국회 예산안 처리 진통", imp: 7.2, sent: 4.5 },
+                        { title: "연말 구세군 자선냄비 시종식", imp: 6.0, sent: 7.8 }
+                    ]
+                }
+            });
+        }, 500);
+    });
 }

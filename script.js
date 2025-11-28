@@ -1,18 +1,24 @@
 import { createNewsItemHTML, renderTopNews, renderLatestNews, renderExploreNews, showPage } from './ui.js';
-import { fetchMainPageNews, fetchExploreNews } from './api.js';
+import { fetchMainPageNews, fetchExploreNews, fetchAnalyticsData } from './api.js'; // [수정] fetchAnalyticsData 추가
+import { renderDashboard } from './dashboard.js'; // [수정] dashboard.js import
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- 페이지 네비게이션 로직 ---
     const navLinks = document.querySelectorAll('.nav-link');
     const pages = document.querySelectorAll('.page');
 
-    // ⭐️ showPage에 필요한 변수들을 미리 전달합니다.
     navLinks.forEach(link => {
-        link.addEventListener('click', (event) => {
+        link.addEventListener('click', async (event) => { // async 추가
             event.preventDefault();
             const pageId = event.target.dataset.page;
-            // ⭐️ 클릭 시 showPage 함수에 pages와 navLinks를 함께 전달해야 합니다.
+            
+            // 페이지 전환
             showPage(pageId, pages, navLinks);
+
+            // [추가] 분석 페이지가 활성화되면 데이터 로드
+            if (pageId === 'analysis') {
+                await loadAnalyticsPage();
+            }
         });
     });
 
@@ -79,7 +85,16 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Initialization Error:', error);
     }
 }
-
+    async function loadAnalyticsPage() {
+        try {
+            console.log("분석 데이터를 불러오는 중...");
+            const data = await fetchAnalyticsData();
+            renderDashboard(data);
+        } catch (error) {
+            console.error("분석 데이터 로드 실패:", error);
+            alert("분석 데이터를 불러오지 못했습니다.");
+        }
+    }
     // 뉴스 탐색 페이지: 서버로부터 데이터를 가져오는 함수
     async function loadExploreNews(isInitialLoad = false) {
         if (isLoadingExplore) return; // 이미 로딩 중이면 중복 실행 방지
