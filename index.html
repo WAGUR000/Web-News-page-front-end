@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Today News Service</title>
     <link rel="stylesheet" href="style.css">
+<<<<<<< HEAD
     <!-- [추가] Chart.js 라이브러리 -->
+=======
+    <!-- Chart.js 라이브러리 추가 -->
+>>>>>>> efde4afb631eb6082a2d5793813ec88e1825ae79
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -22,7 +26,11 @@
     </header>
 
     <main>
+<<<<<<< HEAD
         <!-- 메인 페이지 (원본 유지) -->
+=======
+        <!-- 메인 페이지 -->
+>>>>>>> efde4afb631eb6082a2d5793813ec88e1825ae79
         <section id="main-page" class="page active">
             <h2>오늘의 주요 뉴스</h2>
             <div id="top-news" class="news-grid">
@@ -45,7 +53,11 @@
             </div>
         </section>
 
+<<<<<<< HEAD
         <!-- 뉴스 탐색 페이지 (원본 유지) -->
+=======
+        <!-- 뉴스 탐색 페이지 -->
+>>>>>>> efde4afb631eb6082a2d5793813ec88e1825ae79
         <section id="explore-page" class="page">
             <h2>뉴스 탐색</h2>
             <div class="filter-container">
@@ -79,13 +91,18 @@
             <div id="pagination-container"></div>
         </section>
 
+<<<<<<< HEAD
         <!-- [수정됨] 뉴스 분석 페이지 (대시보드 UI) -->
+=======
+        <!-- 뉴스 분석 페이지 (수정됨) -->
+>>>>>>> efde4afb631eb6082a2d5793813ec88e1825ae79
         <section id="analysis-page" class="page">
             <div class="analysis-header">
                 <h2>실시간 뉴스 트렌드 분석</h2>
                 <p class="update-time">최근 24시간 및 실시간 3시간 데이터 기준</p>
             </div>
 
+<<<<<<< HEAD
             <div class="stats-summary-container">
                 <div class="stat-card">
                     <h3>24시간 총 기사</h3>
@@ -102,21 +119,56 @@
             </div>
 
             <div class="charts-grid">
+=======
+            <!-- 요약 카드 -->
+            <div class="stats-summary-container">
+                <div class="stat-card">
+                    <h3>24시간 총 기사</h3>
+                    <p id="stat-total-vol" class="loading-text">- 건</p>
+                </div>
+                <div class="stat-card">
+                    <h3>평균 중요도</h3>
+                    <p id="stat-avg-imp" class="loading-text">- / 10</p>
+                </div>
+                <div class="stat-card">
+                    <h3>평균 감성지수</h3>
+                    <p id="stat-avg-sent" class="loading-text">- / 10</p>
+                </div>
+            </div>
+
+            <!-- 차트 영역 -->
+            <div class="charts-grid">
+                <!-- 24시간 추이 -->
+>>>>>>> efde4afb631eb6082a2d5793813ec88e1825ae79
                 <div class="chart-container full-width">
                     <h3>📊 시간대별 기사량 및 감성 추이 (24H)</h3>
                     <div class="canvas-wrapper">
                         <canvas id="trendChart24h"></canvas>
                     </div>
                 </div>
+<<<<<<< HEAD
+=======
+
+                <!-- 3시간 급상승 키워드 -->
+>>>>>>> efde4afb631eb6082a2d5793813ec88e1825ae79
                 <div class="chart-container half-width">
                     <h3>🔥 실시간 급상승 키워드 (3H)</h3>
                     <div class="canvas-wrapper">
                         <canvas id="keywordChart3h"></canvas>
                     </div>
                 </div>
+<<<<<<< HEAD
                 <div class="chart-container half-width">
                     <h3>🗞️ 실시간 핵심 이슈 (Top 5)</h3>
                     <div id="cluster-list" class="cluster-list">
+=======
+
+                <!-- 3시간 핵심 이슈 리스트 -->
+                <div class="chart-container half-width">
+                    <h3>🗞️ 실시간 핵심 이슈 (Top 5)</h3>
+                    <div id="cluster-list" class="cluster-list">
+                        <!-- JS로 동적 추가됨 -->
+>>>>>>> efde4afb631eb6082a2d5793813ec88e1825ae79
                         <div class="loading-spinner">데이터를 불러오는 중...</div>
                     </div>
                 </div>
