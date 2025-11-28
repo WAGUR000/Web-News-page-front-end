@@ -37,7 +37,6 @@ export async function fetchMainPageNews(dateString) {
  * @param {object} [params.exclusiveStartKey] - 페이지네이션을 위한 DynamoDB의 exclusiveStartKey
  * @returns {Promise<{items: Array<object>, lastEvaluatedKey: object}>} 뉴스 목록과 다음 페이지 토큰
  */
-
 export async function fetchExploreNews({ category, sortBy, limit, date, exclusiveStartKey }) {
     const params = new URLSearchParams({
         mode: 'explore',
@@ -49,9 +48,5 @@ export async function fetchExploreNews({ category, sortBy, limit, date, exclusiv
     if (exclusiveStartKey) params.append('exclusiveStartKey', JSON.stringify(exclusiveStartKey));
 
     const response = await fetch(`${BASE_URL}?${params.toString()}`);
-    return handleApiResponse(response);
-}
-export async function fetchAnalyticsData() {
-    const response = await fetch(ANALYTICS_API_URL);
     return handleApiResponse(response);
 }
