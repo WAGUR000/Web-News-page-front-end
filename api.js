@@ -1,4 +1,5 @@
 const BASE_URL = `https://xxterco9tj.execute-api.ap-northeast-2.amazonaws.com/default/Access_DynamoDB`;
+const ANALYTICS_API_URL = "https://xxterco9tj.execute-api.ap-northeast-2.amazonaws.com/default/Request_Analysis_Lambda"; 
 
 /**
  * API 요청 중 발생하는 에러를 처리하고 응답을 JSON으로 파싱하는 헬퍼 함수
@@ -51,7 +52,6 @@ export async function fetchExploreNews({ category, sortBy, limit, date, exclusiv
     return handleApiResponse(response);
 }
 
-const ANALYTICS_API_URL = "https://xxterco9tj.execute-api.ap-northeast-2.amazonaws.com/default/Request_Analysis_Lambda"; 
 
 export async function fetchAnalyticsData() {
     const response = await fetch(ANALYTICS_API_URL);
