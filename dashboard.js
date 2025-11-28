@@ -1,11 +1,13 @@
 let trendChartInstance = null;
 let keywordChartInstance = null;
+let clusterChartInstance = null; // [추가] 군집 차트용 인스턴스
 
 export function renderDashboard(data) {
     if (!data) return;
     renderSummary(data.chart_24h);
     renderTrendChart(data.chart_24h);
     renderKeywordChart(data.trend_3h.keywords);
+    renderClusterChart(data.trend_3h.clusters); // [추가] 버블 차트 렌더링
     renderClusterList(data.trend_3h.clusters);
 }
 
@@ -29,6 +31,7 @@ function renderSummary(hourlyData) {
     }
 }
 
+// 1. 24시간 추이 차트
 function renderTrendChart(hourlyData) {
     const ctx = document.getElementById('trendChart24h');
     if (!ctx) return;
@@ -66,7 +69,6 @@ function renderTrendChart(hourlyData) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
             scales: {
                 y: { position: 'left', grid: { display: false } },
                 y1: { position: 'right', min: 0, max: 10, grid: { borderDash: [2, 4] } }
@@ -75,6 +77,7 @@ function renderTrendChart(hourlyData) {
     });
 }
 
+// 2. 키워드 차트
 function renderKeywordChart(keywords) {
     const ctx = document.getElementById('keywordChart3h');
     if (!ctx) return;
@@ -104,6 +107,61 @@ function renderKeywordChart(keywords) {
     });
 }
 
+// 3. [신규] 군집(이슈) 버블 차트
+function renderClusterChart(clusters) {
+    const ctx = document.getElementById('clusterChart');
+    if (!ctx) return;
+
+    if (clusterChartInstance) clusterChartInstance.destroy();
+
+    // 데이터 가공 (x: 감성, y: 중요도, r: 기사량)
+    const bubbleData = clusters.map(c => ({
+        x: c.sent, 
+        y: c.imp, 
+        r: Math.min(Math.max(c.vol / 5, 5), 30), // 버블 크기 조정 (최소 5, 최대 30)
+        title: c.topic // 툴팁용 제목
+    }));
+
+    clusterChartInstance = new Chart(ctx, {
+        type: 'bubble',
+        data: {
+            datasets: [{
+                label: '주요 이슈',
+                data: bubbleData,
+                backgroundColor: (context) => {
+                    const val = context.raw?.x; // 감성 점수
+                    return val >= 6 ? 'rgba(34, 197, 94, 0.7)' : (val <= 4 ? 'rgba(239, 68, 68, 0.7)' : 'rgba(245, 158, 11, 0.7)');
+                }
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => {
+                            const item = ctx.raw;
+                            return `${item.title} (기사: ${clusters[ctx.dataIndex].vol}건)`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { 
+                    min: 0, max: 10, 
+                    title: { display: true, text: '감성 지수 (부정 ↔ 긍정)' } 
+                },
+                y: { 
+                    min: 0, max: 10, 
+                    title: { display: true, text: '중요도 (낮음 ↕ 높음)' } 
+                }
+            }
+        }
+    });
+}
+
+// 4. 이슈 리스트
 function renderClusterList(clusters) {
     const container = document.getElementById('cluster-list');
     if (!container) return;
@@ -132,4 +190,3 @@ function renderClusterList(clusters) {
         container.appendChild(div);
     });
 }
-
