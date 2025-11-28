@@ -7,6 +7,7 @@ export function renderDashboard(data) {
     renderTrendChart(data.chart_24h);
     renderKeywordChart(data.trend_3h.keywords);
     renderClusterList(data.trend_3h.clusters);
+    renderClusterChart(data.trend_3h.clusters); 
 }
 
 function renderSummary(hourlyData) {
@@ -133,3 +134,72 @@ function renderClusterList(clusters) {
     });
 }
 
+
+function renderClusterChart(clusters) {
+    const ctx = document.getElementById('clusterChart');
+    if (!ctx) return;
+
+    if (clusterChartInstance) clusterChartInstance.destroy();
+
+    // 데이터 매핑: x(감성), y(중요도), r(기사량)
+    const bubbleData = clusters.map(c => ({
+        x: c.sent,
+        y: c.imp,
+        // 원 크기(r)는 기사량에 비례하되 너무 크거나 작지 않게 제한
+        r: Math.min(Math.max(c.vol / 2, 5), 25),
+        title: c.title,
+        vol: c.vol
+    }));
+
+    clusterChartInstance = new Chart(ctx, {
+        type: 'bubble',
+        data: {
+            datasets: [{
+                label: '이슈 클러스터',
+                data: bubbleData,
+                backgroundColor: (context) => {
+                    const val = context.raw?.x;
+                    // 감성에 따른 색상 (초록:긍정, 빨강:부정, 주황:중립)
+                    if (val >= 6) return 'rgba(34, 197, 94, 0.6)';
+                    if (val <= 4) return 'rgba(239, 68, 68, 0.6)';
+                    return 'rgba(245, 158, 11, 0.6)';
+                },
+                borderColor: (context) => {
+                    const val = context.raw?.x;
+                    if (val >= 6) return 'rgb(21, 128, 61)';
+                    if (val <= 4) return 'rgb(185, 28, 28)';
+                    return 'rgb(180, 83, 9)';
+                },
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (context) => {
+                            const item = context.raw;
+                            // 툴팁에 제목과 기사 수 표시
+                            return `${item.title.substring(0, 20)}... (${item.vol}건)`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    min: 0, max: 10,
+                    title: { display: true, text: '부정(0) ↔ 긍정(10)' },
+                    grid: { display: false }
+                },
+                y: {
+                    min: 0, max: 10,
+                    title: { display: true, text: '중요도' },
+                    grid: { borderDash: [2, 2] }
+                }
+            }
+        }
+    });
+}
