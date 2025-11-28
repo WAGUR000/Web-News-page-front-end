@@ -1,5 +1,6 @@
 let trendChartInstance = null;
 let keywordChartInstance = null;
+let clusterChartInstance = null;
 
 export function renderDashboard(data) {
     if (!data) return;
