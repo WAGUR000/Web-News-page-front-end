@@ -7,7 +7,6 @@ export function renderDashboard(data) {
     renderTrendChart(data.chart_24h);
     renderKeywordChart(data.trend_3h.keywords);
     renderClusterList(data.trend_3h.clusters);
-    renderClusterChart(data.trend_3h.clusters);
 }
 
 function renderSummary(hourlyData) {
@@ -134,70 +133,3 @@ function renderClusterList(clusters) {
     });
 }
 
-
-function renderClusterChart(clusters) {
-    const ctx = document.getElementById('clusterChart');
-    if (!ctx) return; // HTML에 차트 영역이 없으면 중단
-
-    if (clusterChartInstance) clusterChartInstance.destroy();
-
-    // 데이터 변환: x(감성), y(중요도), r(기사량 기반 반지름)
-    const bubbleData = clusters.map(c => ({
-        x: c.sent,  // X축: 감성지수 (0~10)
-        y: c.imp,   // Y축: 중요도 (0~10)
-        // 원 크기(r)는 기사량(vol)에 비례하되, 너무 크거나 작지 않게 조정
-        r: Math.min(Math.max(c.vol / 3, 5), 25), 
-        topic: c.title // 툴팁에 보여줄 제목
-    }));
-
-    clusterChartInstance = new Chart(ctx, {
-        type: 'bubble',
-        data: {
-            datasets: [{
-                label: '이슈',
-                data: bubbleData,
-                backgroundColor: (context) => {
-                    const val = context.raw?.x; 
-                    // 감성에 따른 색상 (초록:긍정, 빨강:부정, 노랑:중립)
-                    if (val >= 6) return 'rgba(34, 197, 94, 0.6)'; // Green
-                    if (val <= 4) return 'rgba(239, 68, 68, 0.6)'; // Red
-                    return 'rgba(245, 158, 11, 0.6)'; // Amber
-                },
-                borderColor: (context) => {
-                    const val = context.raw?.x;
-                    if (val >= 6) return 'rgb(21, 128, 61)';
-                    if (val <= 4) return 'rgb(185, 28, 28)';
-                    return 'rgb(180, 83, 9)';
-                },
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }, // 범례 숨김 (깔끔하게)
-                tooltip: {
-                    callbacks: {
-                        label: (ctx) => {
-                            const item = ctx.raw;
-                            return `${item.topic} (감성:${item.x}, 중요:${item.y})`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    min: 0, max: 10,
-                    title: { display: true, text: '부정(0) ↔ 긍정(10)' },
-                    grid: { display: false }
-                },
-                y: {
-                    min: 0, max: 10,
-                    title: { display: true, text: '중요도' },
-                    grid: { borderDash: [2, 2] }
-                }
-            }
-        }
-    });
-}
