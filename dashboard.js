@@ -26,35 +26,15 @@ export function renderDashboard(data) {
     renderKeywordChart(data.trend_3h.keywords);
 
 
-    const rawClusterData3h = data.trend_3h.clusters_3h || [];
-    const top5_3h = [...rawClusterData3h]
-        .sort((a, b) => {
-            // 1순위: 중요도(imp) 내림차순
-            if (b.imp !== a.imp) return b.imp - a.imp;
-            // 2순위: 기사량(vol) 내림차순
-            return b.vol - a.vol;
-        })
-        .slice(0, 5); // [핵심] 5개만 자름
-    const filteredClusters1 = top5_3h.filter(c => c.vol >= 4);
-    renderClusterList(filteredClusters1, 'cluster-list-3h');
+    const list3h = data.trend_3h.clusters_3h || [];
+    renderClusterList(list3h, 'cluster-list-3h');
+
+
+    const list24h = data.trend_3h.clusters_24h || [];
+    renderClusterList(list24h, 'cluster-list-24h');
 
     const clusterData = data.trend_3h.clusters_24h || data.trend_3h.clusters;
     renderClusterChart(clusterData);
-
-    // [핵심] 차트와 리스트 렌더링 호출
-
-    renderClusterList(data.trend_3h.clusters, 'cluster-list-3h'); // 리스트는 최근 3시간 데이터 기준
-    const rawClusterData24h = data.trend_3h.clusters_24h || [];
-    const top5_24h = [...rawClusterData24h]
-        .sort((a, b) => {
-            // 1순위: 중요도(imp) 내림차순
-            if (b.imp !== a.imp) return b.imp - a.imp;
-            // 2순위: 기사량(vol) 내림차순
-            return b.vol - a.vol;
-        })
-        .slice(0, 5); // [핵심] 5개만 자름
-    const filteredClusters2 = top5_24h.filter(c => c.vol >= 4);
-    renderClusterList(filteredClusters2, 'cluster-list-24h');
 
 
     // 탭 기능 초기화 (window 객체에 함수 등록)
