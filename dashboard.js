@@ -31,8 +31,8 @@ export function renderDashboard(data) {
     // [핵심] 차트와 리스트 렌더링 호출
     renderClusterChart(clusterData);
     renderClusterList(data.trend_3h.clusters, 'cluster-list-3h'); // 리스트는 최근 3시간 데이터 기준
-
-
+    renderClusterList(clusterData, 'cluster-list-24h');
+    
     // 탭 기능 초기화 (window 객체에 함수 등록)
     window.switchTab = switchTab;
 }
