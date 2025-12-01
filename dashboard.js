@@ -3,6 +3,17 @@ let trendChartInstance = null;
 let keywordChartInstance = null;
 let clusterChartInstance = null;
 
+const CATEGORY_COLORS = {
+    '정치': '#3b82f6',   // 파랑
+    '경제': '#10b981',   // 초록
+    '사회': '#f59e0b',   // 주황 (노랑)
+    '국제': '#8b5cf6',   // 보라
+    'IT/과학': '#06b6d4', // 청록
+    '연예': '#ec4899',   // 분홍
+    '스포츠': '#ef4444', // 빨강
+    '기타': '#94a3b8'    // 회색
+};
+
 // 메인 렌더링 함수
 export function renderDashboard(data) {
     if (!data) return;
@@ -47,63 +58,99 @@ function renderTrendChart(hourlyData) {
     if (trendChartInstance) trendChartInstance.destroy();
 
     const labels = hourlyData.map(d => d.time);
-    const volumes = hourlyData.map(d => d.volume);
     const sentiments = hourlyData.map(d => d.avgSentiment);
     const importances = hourlyData.map(d => d.avgImportance);
 
+    // 2-1. 카테고리별 데이터셋 생성 (막대 그래프용)
+    const categoryDatasets = TARGET_CATEGORIES.map(category => {
+        return {
+            type: 'bar',
+            label: category, // 범례에 표시될 이름
+            data: hourlyData.map(d => (d.categoryDist && d.categoryDist[category]) || 0),
+            backgroundColor: CATEGORY_COLORS[category] || CATEGORY_COLORS['기타'],
+            yAxisID: 'y', // 좌측 축 사용
+            stack: 'combined', // [핵심] 이 ID가 같은 것끼리 쌓임
+            order: 3 // 라인 뒤에 배치
+        };
+    });
+
+    // 2-2. 라인 차트 데이터셋 (감성, 중요도)
+    const lineDatasets = [
+        {
+            label: '감성지수',
+            data: sentiments,
+            type: 'line',
+            borderColor: '#1e293b', // 진한 남색 (가독성 위해 변경)
+            backgroundColor: '#1e293b',
+            borderWidth: 2,
+            pointRadius: 0, 
+            yAxisID: 'y1', // 우측 축
+            order: 2,
+            tension: 0.3
+        },
+        {
+            label: '중요도',
+            data: importances,
+            type: 'line',
+            borderColor: '#f59e0b', // 주황색
+            backgroundColor: '#f59e0b',
+            borderWidth: 2,
+            pointRadius: 0,
+            borderDash: [5, 5], // 점선
+            yAxisID: 'y1', // 우측 축
+            order: 1, // 맨 앞에 배치
+            tension: 0.3
+        }
+    ];
+
     trendChartInstance = new Chart(ctx, {
-        type: 'bar',
         data: {
             labels: labels,
-            datasets: [
-                {
-                    label: '기사량',
-                    data: volumes,
-                    backgroundColor: 'rgba(203, 213, 225, 0.6)', 
-                    yAxisID: 'y',
-                    order: 3,
-                    borderRadius: 2
-                },
-                {
-                    label: '감성지수',
-                    data: sentiments,
-                    type: 'line',
-                    borderColor: '#10b981',
-                    backgroundColor: '#10b981',
-                    borderWidth: 2,
-                    pointRadius: 0, 
-                    yAxisID: 'y1',
-                    order: 2,
-                    tension: 0.3
-                },
-                {
-                    label: '중요도',
-                    data: importances,
-                    type: 'line',
-                    borderColor: '#f59e0b',
-                    backgroundColor: '#f59e0b',
-                    borderWidth: 2,
-                    pointRadius: 0,
-                    borderDash: [5, 5],
-                    yAxisID: 'y1',
-                    order: 1,
-                    tension: 0.3
-                }
-            ]
+            // 배열 합치기: [카테고리 막대들..., 라인들...]
+            datasets: [...categoryDatasets, ...lineDatasets]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
-            plugins: { legend: { position: 'top', labels: { usePointStyle: true } } },
-            scales: {
-                y: {
-                    type: 'linear', position: 'left', grid: { display: false },
-                    title: { display: true, text: '기사 수' }
+            interaction: {
+                mode: 'index', // 마우스 올리면 해당 시간대의 모든 데이터 툴팁 표시
+                intersect: false,
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: { usePointStyle: true, padding: 15, boxWidth: 8 }
                 },
-                y1: {
-                    type: 'linear', position: 'right', min: 0, max: 10, grid: { borderDash: [2, 4] },
-                    title: { display: true, text: '점수' }
+                tooltip: {
+                    callbacks: {
+                        // 툴팁에 값이 0인 카테고리는 안 보이게 깔끔하게 처리
+                        filter: function(tooltipItem) {
+                            return tooltipItem.raw > 0; 
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    stacked: true, // [핵심] X축 스택 활성화
+                    grid: { display: false }
+                },
+                y: { // 좌측 축 (기사량)
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    stacked: true, // [핵심] Y축 스택 활성화
+                    title: { display: true, text: '기사 수' },
+                    grid: { display: false }
+                },
+                y1: { // 우측 축 (점수)
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    min: 0,
+                    max: 10,
+                    title: { display: true, text: '점수 (0~10)' },
+                    grid: { borderDash: [2, 4] }
                 }
             }
         }
