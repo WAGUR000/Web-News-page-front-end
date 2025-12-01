@@ -32,9 +32,7 @@ export function renderDashboard(data) {
     renderClusterChart(clusterData);
     renderClusterList(data.trend_3h.clusters, 'cluster-list-3h'); // 리스트는 최근 3시간 데이터 기준
 
-    const sorted24h = sortClustersByScore(clusterData);
-    renderClusterList(sorted24h, 'cluster-list-24h');
-    
+
     // 탭 기능 초기화 (window 객체에 함수 등록)
     window.switchTab = switchTab;
 }
@@ -58,14 +56,6 @@ function switchTab(mode) {
 }
 
 // [신규] 가중치 점수 계산 및 정렬 (프론트엔드용)
-function sortClustersByScore(clusters) {
-    return [...clusters].sort((a, b) => {
-        // 점수 = (중요도 * 1.5) + (log10(기사수) * 2.0)
-        const scoreA = (a.imp * 1.5) + (Math.log10(Math.max(a.vol, 1)) * 2.0);
-        const scoreB = (b.imp * 1.5) + (Math.log10(Math.max(b.vol, 1)) * 2.0);
-        return scoreB - scoreA;
-    }).slice(0, 5); // Top 5만
-}
 
 
 
