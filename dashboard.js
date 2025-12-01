@@ -40,7 +40,7 @@ export function renderDashboard(data) {
 
 
     // [핵심] 차트와 리스트 렌더링 호출
-    renderClusterChart(clusterData);
+    renderClusterChart(filteredClusters1);
     renderClusterList(data.trend_3h.clusters, 'cluster-list-3h'); // 리스트는 최근 3시간 데이터 기준
     const rawClusterData24h = data.trend_3h.clusters_24h || [];
     const top5_24h = [...rawClusterData24h]
