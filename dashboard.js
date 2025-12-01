@@ -2,7 +2,6 @@
 let trendChartInstance = null;
 let keywordChartInstance = null;
 let clusterChartInstance = null;
-let cachedData = null;
 
 const CATEGORY_COLORS = {
     '정치': '#3b82f6',   // 파랑
@@ -20,49 +19,17 @@ const TARGET_CATEGORIES = ['정치', '경제', '사회', '국제', 'IT/과학', 
 // 메인 렌더링 함수
 export function renderDashboard(data) {
     if (!data) return;
-    cachedData = data; // 데이터 캐싱
     renderSummary(data.chart_24h);
     renderTrendChart(data.chart_24h);
     renderKeywordChart(data.trend_3h.keywords);
-
-
-    // 1. 버블 차트: 24시간 전체 Raw Data 사용 (4건 이상만 필터링)
-    const rawChartData = data.trend_3h.clusters_chart || [];
-    renderClusterChart(rawChartData.filter(c => c.vol >= 4));
     
-    // 2. 실시간 (3H) 리스트 렌더링
-    const list3h = data.trend_3h.clusters_3h || [];
-    renderClusterList(list3h, 'cluster-list-3h');
-
-    // 3. 일간 (24H) 리스트 렌더링
-    const list24h = data.trend_3h.clusters_24h || [];
-    renderClusterList(list24h, 'cluster-list-24h');
-
-    // 4. 탭 기능 활성화
-    window.switchTab = switchTab;
+    // 24시간 클러스터 데이터 (없으면 3시간 데이터 사용)
+    const clusterData = data.trend_3h.clusters_24h || data.trend_3h.clusters;
+    
+    // [핵심] 차트와 리스트 렌더링 호출
+    renderClusterChart(clusterData);
+    renderClusterList(data.trend_3h.clusters); // 리스트는 최근 3시간 데이터 기준
 }
-function switchTab(mode) {
-    const list3h = document.getElementById('cluster-list-3h');
-    const list24h = document.getElementById('cluster-list-24h');
-    const btn3h = document.getElementById('btn-3h');
-    const btn24h = document.getElementById('btn-24h');
-
-    if (mode === '3h') {
-        if(list3h) list3h.style.display = 'block';
-        if(list24h) list24h.style.display = 'none';
-        if(btn3h) btn3h.classList.add('active');
-        if(btn24h) btn24h.classList.remove('active');
-    } else {
-        if(list3h) list3h.style.display = 'none';
-        if(list24h) list24h.style.display = 'block';
-        if(btn3h) btn3h.classList.remove('active');
-        if(btn24h) btn24h.classList.add('active');
-    }
-}
-
-
-
-
 
 // 1. 상단 요약 정보
 function renderSummary(hourlyData) {
@@ -222,47 +189,40 @@ function renderKeywordChart(keywords) {
     });
 }
 
-function renderClusterList(clusters, targetId) {
-    const container = document.getElementById(targetId);
+// 4. 이슈 리스트 (필터링 적용됨)
+function renderClusterList(clusters) {
+    const container = document.getElementById('cluster-list');
     if (!container) return;
     
     container.innerHTML = '';
+    
+    // [수정] 기사 수(vol)가 4개 이상인 것만 필터링 후 중요도순 정렬
+    const filteredClusters = clusters.filter(c => c.vol >= 4);
+    const topClusters = filteredClusters.sort((a, b) => b.imp - a.imp).slice(0, 5);
 
-    if (!clusters || clusters.length === 0) {
-        container.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">데이터가 없습니다.</div>';
+    if (topClusters.length === 0) {
+        container.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">주요 이슈 데이터가 없습니다.</div>';
         return;
     }
 
-    clusters.forEach((cluster, idx) => {
+    topClusters.forEach((cluster, idx) => {
         const div = document.createElement('div');
         div.className = 'cluster-item';
         const badgeClass = cluster.imp >= 7 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700';
         
-        // 시간 표시
-        let timeStr = '';
-        if (cluster.time) {
-            const t = new Date(cluster.time);
-            timeStr = `${t.getHours()}:${t.getMinutes().toString().padStart(2, '0')}`;
-        }
-
         div.innerHTML = `
             <div class="cluster-rank">${idx + 1}</div>
             <div class="cluster-content">
-                <div class="cluster-title" title="${cluster.title}">
-                    ${cluster.topic || cluster.title}
-                </div>
+                <div class="cluster-title">${cluster.title}</div>
                 <div class="cluster-meta">
                     <span class="badge ${badgeClass}">중요도 ${cluster.imp}</span>
-                    <span style="font-size:0.8rem; color:#64748b;">기사 ${cluster.vol}건</span>
-                    ${timeStr ? `<span style="font-size:0.75rem; color:#94a3b8; margin-left:auto;">${timeStr}</span>` : ''}
+                    <span style="font-size:0.8rem; color:#64748b;">(기사 ${cluster.vol}건)</span>
                 </div>
             </div>
         `;
         container.appendChild(div);
     });
 }
-
-
 
 // 5. [수정됨] 이슈 분포 버블 차트 (필터링 적용됨)
 function renderClusterChart(clusters) {
