@@ -31,7 +31,17 @@ export function renderDashboard(data) {
     // [핵심] 차트와 리스트 렌더링 호출
     renderClusterChart(clusterData);
     renderClusterList(data.trend_3h.clusters, 'cluster-list-3h'); // 리스트는 최근 3시간 데이터 기준
-    renderClusterList(clusterData, 'cluster-list-24h');
+    const rawClusterData24h = data.trend_3h.clusters_24h || [];
+    const top5_24h = [...rawClusterData24h]
+        .sort((a, b) => {
+            // 1순위: 중요도(imp) 내림차순
+            if (b.imp !== a.imp) return b.imp - a.imp;
+            // 2순위: 기사량(vol) 내림차순
+            return b.vol - a.vol;
+        })
+        .slice(0, 5); // [핵심] 5개만 자름
+
+    renderClusterList(top5_24h, 'cluster-list-24h');
     
     // 탭 기능 초기화 (window 객체에 함수 등록)
     window.switchTab = switchTab;
@@ -55,7 +65,7 @@ function switchTab(mode) {
     }
 }
 
-// [신규] 가중치 점수 계산 및 정렬 (프론트엔드용)
+
 
 
 
