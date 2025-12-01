@@ -2,15 +2,20 @@ let trendChartInstance = null;
 let keywordChartInstance = null;
 let clusterChartInstance = null;
 
+// 메인 렌더링 함수
 export function renderDashboard(data) {
     if (!data) return;
     renderSummary(data.chart_24h);
     renderTrendChart(data.chart_24h);
     renderKeywordChart(data.trend_3h.keywords);
-    renderClusterList(data.trend_3h.clusters);
     
-    // [변경] 24시간 시계열 데이터(hourlyData)를 버블 차트에 전달
-    renderClusterChart(data.chart_24h); 
+    // [중요 수정] 24시간치 데이터(clusters_24h)를 버블 차트에 전달
+    // 만약 API 구버전이라 clusters_24h가 없으면 기존 clusters 사용 (하위 호환)
+    const bubbleData = data.trend_3h.clusters_24h || data.trend_3h.clusters;
+    renderClusterChart(bubbleData);
+    
+    // 리스트는 3시간 트렌드 데이터 사용
+    renderClusterList(data.trend_3h.clusters);
 }
 
 function renderSummary(hourlyData) {
@@ -138,43 +143,46 @@ function renderClusterList(clusters) {
 }
 
 // 5. [수정됨] 이슈 분포 버블 차트
-function renderClusterChart(hourlyData) {
+function renderClusterChart(clusters) {
     const ctx = document.getElementById('clusterChart');
     if (!ctx) return;
 
     if (clusterChartInstance) clusterChartInstance.destroy();
 
-    // 데이터 변환
-    const bubbleData = hourlyData.map((d, index) => ({
-        x: index,           // X축: 시간 순서 (Index)
-        y: d.avgImportance, // Y축: 중요도
-        
-        // [수정] 원 크기 조정 (너무 크지 않게 줄임: volume / 15)
-        r: Math.min(Math.max(d.volume / 15, 4), 25),
-        
-        // 툴팁용 정보
-        timeLabel: d.time,
-        sentiment: d.avgSentiment,
-        volume: d.volume
-    }));
+    const now = new Date();
+
+    const bubbleData = clusters.map(c => {
+        const pubDate = c.time ? new Date(c.time) : new Date();
+        const hoursAgo = (pubDate - now) / (1000 * 60 * 60);
+
+        return {
+            x: hoursAgo, 
+            y: c.imp, 
+            r: Math.min(Math.max(c.vol / 2, 4), 30),
+            title: c.title,
+            topic: c.topic,
+            vol: c.vol,
+            sent: c.sent,
+            timeStr: pubDate.toLocaleTimeString('ko-KR', {hour: '2-digit', minute:'2-digit'})
+        };
+    });
 
     clusterChartInstance = new Chart(ctx, {
         type: 'bubble',
         data: {
             datasets: [{
-                label: '시간대별 이슈 분포',
+                label: '이슈',
                 data: bubbleData,
                 backgroundColor: (context) => {
-                    const val = context.raw?.sentiment;
-                    // 감성 색상: 긍정(초록), 부정(빨강), 중립(주황)
-                    if (val >= 6) return 'rgba(34, 197, 94, 0.7)';
-                    if (val <= 4) return 'rgba(239, 68, 68, 0.7)';
-                    return 'rgba(245, 158, 11, 0.7)';
+                    const val = context.raw?.sent;
+                    if (val >= 6.0) return 'rgba(34, 197, 94, 0.7)'; // Green
+                    if (val <= 4.0) return 'rgba(239, 68, 68, 0.7)'; // Red
+                    return 'rgba(245, 158, 11, 0.7)'; // Amber
                 },
                 borderColor: (context) => {
-                    const val = context.raw?.sentiment;
-                    if (val >= 6) return 'rgb(21, 128, 61)';
-                    if (val <= 4) return 'rgb(185, 28, 28)';
+                    const val = context.raw?.sent;
+                    if (val >= 6.0) return 'rgb(21, 128, 61)';
+                    if (val <= 4.0) return 'rgb(185, 28, 28)';
                     return 'rgb(180, 83, 9)';
                 },
                 borderWidth: 1
@@ -189,8 +197,7 @@ function renderClusterChart(hourlyData) {
                     callbacks: {
                         label: (context) => {
                             const item = context.raw;
-                            // 툴팁 내용: 시간, 중요도, 기사량, 감성
-                            return `[${item.timeLabel}] 중요도:${item.y}, 기사:${item.volume}건, 감성:${item.sentiment}`;
+                            return `[${item.timeStr}] ${item.topic} (중요도:${item.y}, 기사:${item.vol}건)`;
                         }
                     }
                 }
@@ -199,21 +206,22 @@ function renderClusterChart(hourlyData) {
                 x: {
                     type: 'linear',
                     position: 'bottom',
-                    title: { display: true, text: '시간 (24시간 전 → 현재)' },
+                    min: -24, 
+                    max: 1,   
+                    title: { display: true, text: '시간 흐름 (과거 → 현재)' },
                     ticks: {
-                        // 인덱스를 시간 라벨로 변환 (예: "14시")
+                        stepSize: 4,
                         callback: function(value) {
-                            return hourlyData[value] ? hourlyData[value].time : '';
-                        },
-                        stepSize: 4 // 4시간 단위로 라벨 표시
+                            if (value === 0) return '현재';
+                            return Math.abs(value) + '시간 전';
+                        }
                     },
-                    // X축 여백 확보
-                    min: -1,
-                    max: hourlyData.length
+                    grid: { display: false }
                 },
                 y: {
-                    min: 0, max: 10,
-                    title: { display: true, text: '평균 중요도' },
+                    min: 0, 
+                    max: 10,
+                    title: { display: true, text: '중요도' },
                     grid: { borderDash: [2, 2] }
                 }
             }
