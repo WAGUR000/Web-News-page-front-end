@@ -5,7 +5,7 @@ let clusterChartInstance = null;
 
 const CATEGORY_COLORS = {
     '정치': '#3b82f6',   // 파랑
-    '경제': '#10b981',   // 초록
+    '경제': '#15ff00ff',   // 연두
     '사회': '#f59e0b',   // 주황 (노랑)
     '국제': '#8b5cf6',   // 보라
     'IT/과학': '#06b6d4', // 청록
@@ -94,8 +94,8 @@ function renderTrendChart(hourlyData) {
             label: '중요도',
             data: importances,
             type: 'line',
-            borderColor: 'rgba(132, 255, 0, 1)', 
-            backgroundColor: 'rgba(132, 255, 0, 1)',
+            borderColor: '#10b981', 
+            backgroundColor: '#10b981',
             borderWidth: 2,
             pointRadius: 0,
             borderDash: [5, 5], // 점선
