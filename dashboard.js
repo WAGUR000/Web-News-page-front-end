@@ -11,7 +11,7 @@ const CATEGORY_COLORS = {
     'IT/과학': '#06b6d4', // 청록
     '연예': '#ec4899',   // 분홍
     '스포츠': '#ef4444', // 빨강
-    '기타': '#94a3b8'    // 회색
+    '문화/생활': '#94a3b8'    // 회색
 };
 
 const TARGET_CATEGORIES = ['정치', '경제', '사회', '국제', 'IT/과학', '연예', '스포츠','문화/생활'];
@@ -94,8 +94,8 @@ function renderTrendChart(hourlyData) {
             label: '중요도',
             data: importances,
             type: 'line',
-            borderColor: '#f59e0b', // 주황색
-            backgroundColor: '#f59e0b',
+            borderColor: 'rgba(132, 255, 0, 1)', 
+            backgroundColor: 'rgba(132, 255, 0, 1)',
             borderWidth: 2,
             pointRadius: 0,
             borderDash: [5, 5], // 점선
