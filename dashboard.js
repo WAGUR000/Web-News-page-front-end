@@ -40,6 +40,7 @@ export function renderDashboard(data) {
 
     // 4. 탭 기능 활성화
     window.switchTab = switchTab;
+}
 function switchTab(mode) {
     const list3h = document.getElementById('cluster-list-3h');
     const list24h = document.getElementById('cluster-list-24h');
