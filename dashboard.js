@@ -27,12 +27,12 @@ export function renderDashboard(data) {
 
     // 24시간 클러스터 데이터 (없으면 3시간 데이터 사용)
     const clusterData = data.trend_3h.clusters_24h || data.trend_3h.clusters;
-    
+
     // [핵심] 차트와 리스트 렌더링 호출
     renderClusterChart(clusterData);
     renderClusterList(data.trend_3h.clusters, 'cluster-list-3h'); // 리스트는 최근 3시간 데이터 기준
 
-    const sorted24h = sortClustersByScore(clusterData24h);
+    const sorted24h = sortClustersByScore(clusterData);
     renderClusterList(sorted24h, 'cluster-list-24h');
     
     // 탭 기능 초기화 (window 객체에 함수 등록)
