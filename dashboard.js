@@ -35,10 +35,10 @@ export function renderDashboard(data) {
             return b.vol - a.vol;
         })
         .slice(0, 5); // [핵심] 5개만 자름
+    const filteredClusters1 = top5_3h.filter(c => c.vol >= 4);
+    renderClusterList(filteredClusters1, 'cluster-list-3h');
 
-    renderClusterList(top5_3h, 'cluster-list-3h');
 
-    
     // [핵심] 차트와 리스트 렌더링 호출
     renderClusterChart(clusterData);
     renderClusterList(data.trend_3h.clusters, 'cluster-list-3h'); // 리스트는 최근 3시간 데이터 기준
@@ -51,8 +51,8 @@ export function renderDashboard(data) {
             return b.vol - a.vol;
         })
         .slice(0, 5); // [핵심] 5개만 자름
-
-    renderClusterList(top5_24h, 'cluster-list-24h');
+    const filteredClusters2 = top5_24h.filter(c => c.vol >= 4);
+    renderClusterList(filteredClusters2, 'cluster-list-24h');
     
     // 탭 기능 초기화 (window 객체에 함수 등록)
     window.switchTab = switchTab;
