@@ -25,9 +25,20 @@ export function renderDashboard(data) {
     renderTrendChart(data.chart_24h);
     renderKeywordChart(data.trend_3h.keywords);
 
-    // 24시간 클러스터 데이터 (없으면 3시간 데이터 사용)
-    const clusterData = data.trend_3h.clusters_24h || data.trend_3h.clusters;
 
+    const rawClusterData3h = data.trend_3h.clusters_3h || [];
+    const top5_3h = [...rawClusterData3h]
+        .sort((a, b) => {
+            // 1순위: 중요도(imp) 내림차순
+            if (b.imp !== a.imp) return b.imp - a.imp;
+            // 2순위: 기사량(vol) 내림차순
+            return b.vol - a.vol;
+        })
+        .slice(0, 5); // [핵심] 5개만 자름
+
+    renderClusterList(top5_3h, 'cluster-list-3h');
+
+    
     // [핵심] 차트와 리스트 렌더링 호출
     renderClusterChart(clusterData);
     renderClusterList(data.trend_3h.clusters, 'cluster-list-3h'); // 리스트는 최근 3시간 데이터 기준
