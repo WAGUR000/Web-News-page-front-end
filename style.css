@@ -443,3 +443,33 @@ footer {
     .stats-summary-container { flex-direction: column; }
     .charts-grid { grid-template-columns: 1fr; }
 }
+.tab-buttons {
+    display: flex;
+    gap: 5px;
+    background: #f1f5f9;
+    padding: 3px;
+    border-radius: 8px;
+}
+
+.time-tab {
+    border: none;
+    background: transparent;
+    padding: 4px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.time-tab.active {
+    background: white;
+    color: #3b82f6;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.time-tab:hover:not(.active) {
+    color: #334155;
+    background: #e2e8f0;
+}

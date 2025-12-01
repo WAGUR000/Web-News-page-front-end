@@ -115,9 +115,23 @@
                         <canvas id="keywordChart3h"></canvas>
                     </div>
                 </div>
+                <!-- 이슈 리스트 (탭 기능 추가) -->
                 <div class="chart-container half-width">
-                    <h3>🗞️ 실시간 핵심 이슈 (Top 5)</h3>
-                    <div id="cluster-list" class="cluster-list">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3 style="margin:0;">🗞️ 핵심 이슈 (Top 5)</h3>
+                        <div class="tab-buttons">
+                            <button id="btn-3h" class="time-tab active" onclick="switchTab('3h')">실시간 (3H)</button>
+                            <button id="btn-24h" class="time-tab" onclick="switchTab('24h')">일간 (24H)</button>
+                        </div>
+                    </div>
+    
+                    <!-- 실시간(3H) 리스트 -->
+                    <div id="cluster-list-3h" class="cluster-list">
+                        <div class="loading-spinner">데이터를 불러오는 중...</div>
+                    </div>
+
+                    <!-- 일간(24H) 리스트 (초기 숨김) -->
+                    <div id="cluster-list-24h" class="cluster-list" style="display: none;">
                         <div class="loading-spinner">데이터를 불러오는 중...</div>
                     </div>
                 </div>
