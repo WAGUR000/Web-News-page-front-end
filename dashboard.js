@@ -14,6 +14,8 @@ const CATEGORY_COLORS = {
     '기타': '#94a3b8'    // 회색
 };
 
+const TARGET_CATEGORIES = ['정치', '경제', '사회', '국제', 'IT/과학', '연예', '스포츠','문화/생활'];
+
 // 메인 렌더링 함수
 export function renderDashboard(data) {
     if (!data) return;
