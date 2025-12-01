@@ -26,20 +26,20 @@ export function renderDashboard(data) {
     renderKeywordChart(data.trend_3h.keywords);
 
 
+    // 1. 버블 차트: 24시간 전체 Raw Data 사용 (4건 이상만 필터링)
+    const rawChartData = data.trend_3h.clusters_chart || [];
+    renderClusterChart(rawChartData.filter(c => c.vol >= 4));
+    
+    // 2. 실시간 (3H) 리스트 렌더링
     const list3h = data.trend_3h.clusters_3h || [];
     renderClusterList(list3h, 'cluster-list-3h');
 
-
+    // 3. 일간 (24H) 리스트 렌더링
     const list24h = data.trend_3h.clusters_24h || [];
     renderClusterList(list24h, 'cluster-list-24h');
 
-    const clusterData = data.trend_3h.clusters_24h || data.trend_3h.clusters;
-    renderClusterChart(clusterData);
-
-
-    // 탭 기능 초기화 (window 객체에 함수 등록)
+    // 4. 탭 기능 활성화
     window.switchTab = switchTab;
-}
 function switchTab(mode) {
     const list3h = document.getElementById('cluster-list-3h');
     const list24h = document.getElementById('cluster-list-24h');
@@ -47,18 +47,17 @@ function switchTab(mode) {
     const btn24h = document.getElementById('btn-24h');
 
     if (mode === '3h') {
-        list3h.style.display = 'block';
-        list24h.style.display = 'none';
-        btn3h.classList.add('active');
-        btn24h.classList.remove('active');
+        if(list3h) list3h.style.display = 'block';
+        if(list24h) list24h.style.display = 'none';
+        if(btn3h) btn3h.classList.add('active');
+        if(btn24h) btn24h.classList.remove('active');
     } else {
-        list3h.style.display = 'none';
-        list24h.style.display = 'block';
-        btn3h.classList.remove('active');
-        btn24h.classList.add('active');
+        if(list3h) list3h.style.display = 'none';
+        if(list24h) list24h.style.display = 'block';
+        if(btn3h) btn3h.classList.remove('active');
+        if(btn24h) btn24h.classList.add('active');
     }
 }
-
 
 
 
@@ -222,7 +221,6 @@ function renderKeywordChart(keywords) {
     });
 }
 
-// 4. 이슈 리스트 (필터링 적용됨)
 function renderClusterList(clusters, targetId) {
     const container = document.getElementById(targetId);
     if (!container) return;
@@ -230,7 +228,7 @@ function renderClusterList(clusters, targetId) {
     container.innerHTML = '';
 
     if (!clusters || clusters.length === 0) {
-        container.innerHTML = '<div style="padding:10px; color:#888; text-align:center;">데이터가 없습니다.</div>';
+        container.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">데이터가 없습니다.</div>';
         return;
     }
 
@@ -239,8 +237,12 @@ function renderClusterList(clusters, targetId) {
         div.className = 'cluster-item';
         const badgeClass = cluster.imp >= 7 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700';
         
-        // 시간 표시 (24시간 리스트일 경우 유용)
-        const timeStr = cluster.time ? new Date(cluster.time).toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'}) : '';
+        // 시간 표시
+        let timeStr = '';
+        if (cluster.time) {
+            const t = new Date(cluster.time);
+            timeStr = `${t.getHours()}:${t.getMinutes().toString().padStart(2, '0')}`;
+        }
 
         div.innerHTML = `
             <div class="cluster-rank">${idx + 1}</div>
@@ -258,6 +260,7 @@ function renderClusterList(clusters, targetId) {
         container.appendChild(div);
     });
 }
+
 
 
 // 5. [수정됨] 이슈 분포 버블 차트 (필터링 적용됨)
