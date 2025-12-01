@@ -10,11 +10,12 @@ export function renderDashboard(data) {
     renderTrendChart(data.chart_24h);
     renderKeywordChart(data.trend_3h.keywords);
     
-    // 클러스터 데이터 (24시간 데이터 우선 사용)
+    // 24시간 클러스터 데이터 (없으면 3시간 데이터 사용)
     const clusterData = data.trend_3h.clusters_24h || data.trend_3h.clusters;
-    renderClusterChart(clusterData);
     
-    renderClusterList(data.trend_3h.clusters);
+    // [핵심] 차트와 리스트 렌더링 호출
+    renderClusterChart(clusterData);
+    renderClusterList(data.trend_3h.clusters); // 리스트는 최근 3시간 데이터 기준
 }
 
 // 1. 상단 요약 정보
@@ -38,7 +39,7 @@ function renderSummary(hourlyData) {
     }
 }
 
-// 2. [수정됨] 24시간 추이 차트 (기사량 + 감성 + 중요도)
+// 2. 24시간 추이 차트
 function renderTrendChart(hourlyData) {
     const ctx = document.getElementById('trendChart24h');
     if (!ctx) return;
@@ -48,7 +49,6 @@ function renderTrendChart(hourlyData) {
     const labels = hourlyData.map(d => d.time);
     const volumes = hourlyData.map(d => d.volume);
     const sentiments = hourlyData.map(d => d.avgSentiment);
-    // [추가] 중요도 데이터 추출
     const importances = hourlyData.map(d => d.avgImportance);
 
     trendChartInstance = new Chart(ctx, {
@@ -59,7 +59,7 @@ function renderTrendChart(hourlyData) {
                 {
                     label: '기사량',
                     data: volumes,
-                    backgroundColor: 'rgba(203, 213, 225, 0.6)', // 회색 (Slate-300)
+                    backgroundColor: 'rgba(203, 213, 225, 0.6)', 
                     yAxisID: 'y',
                     order: 3,
                     borderRadius: 2
@@ -68,25 +68,24 @@ function renderTrendChart(hourlyData) {
                     label: '감성지수',
                     data: sentiments,
                     type: 'line',
-                    borderColor: '#10b981', // 초록색 (Green-500)
+                    borderColor: '#10b981',
                     backgroundColor: '#10b981',
                     borderWidth: 2,
-                    pointRadius: 2,
+                    pointRadius: 0, 
                     yAxisID: 'y1',
                     order: 2,
                     tension: 0.3
                 },
                 {
-                    // [추가] 중요도 라인
                     label: '중요도',
                     data: importances,
                     type: 'line',
-                    borderColor: '#f59e0b', // 주황색 (Amber-500)
+                    borderColor: '#f59e0b',
                     backgroundColor: '#f59e0b',
                     borderWidth: 2,
-                    pointRadius: 2,
-                    borderDash: [5, 5], // 점선으로 표현하여 감성과 구분
-                    yAxisID: 'y1', // 감성지수와 같은 축 공유 (0~10)
+                    pointRadius: 0,
+                    borderDash: [5, 5],
+                    yAxisID: 'y1',
                     order: 1,
                     tension: 0.3
                 }
@@ -95,32 +94,16 @@ function renderTrendChart(hourlyData) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            interaction: {
-                mode: 'index',
-                intersect: false,
-            },
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: { usePointStyle: true }
-                }
-            },
+            interaction: { mode: 'index', intersect: false },
+            plugins: { legend: { position: 'top', labels: { usePointStyle: true } } },
             scales: {
                 y: {
-                    type: 'linear',
-                    display: true,
-                    position: 'left',
-                    title: { display: true, text: '기사 수' },
-                    grid: { display: false }
+                    type: 'linear', position: 'left', grid: { display: false },
+                    title: { display: true, text: '기사 수' }
                 },
                 y1: {
-                    type: 'linear',
-                    display: true,
-                    position: 'right',
-                    min: 0,
-                    max: 10,
-                    title: { display: true, text: '점수 (0~10)' },
-                    grid: { borderDash: [2, 4] } // 그리드 점선 처리
+                    type: 'linear', position: 'right', min: 0, max: 10, grid: { borderDash: [2, 4] },
+                    title: { display: true, text: '점수' }
                 }
             }
         }
@@ -157,24 +140,26 @@ function renderKeywordChart(keywords) {
     });
 }
 
-// 4. 이슈 리스트
+// 4. 이슈 리스트 (필터링 적용됨)
 function renderClusterList(clusters) {
     const container = document.getElementById('cluster-list');
     if (!container) return;
     
     container.innerHTML = '';
     
-    const topClusters = [...clusters].sort((a, b) => b.imp - a.imp).slice(0, 5);
+    // [수정] 기사 수(vol)가 4개 이상인 것만 필터링 후 중요도순 정렬
+    const filteredClusters = clusters.filter(c => c.vol >= 4);
+    const topClusters = filteredClusters.sort((a, b) => b.imp - a.imp).slice(0, 5);
 
     if (topClusters.length === 0) {
-        container.innerHTML = '<div style="padding:10px; color:#888;">데이터가 없습니다.</div>';
+        container.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">주요 이슈 데이터가 없습니다.</div>';
         return;
     }
 
     topClusters.forEach((cluster, idx) => {
         const div = document.createElement('div');
         div.className = 'cluster-item';
-        const badgeClass = cluster.imp >= 7 ? 'bg-red-100' : 'bg-gray-100';
+        const badgeClass = cluster.imp >= 7 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700';
         
         div.innerHTML = `
             <div class="cluster-rank">${idx + 1}</div>
@@ -190,7 +175,7 @@ function renderClusterList(clusters) {
     });
 }
 
-// 5. 이슈 분포 버블 차트
+// 5. [수정됨] 이슈 분포 버블 차트 (필터링 적용됨)
 function renderClusterChart(clusters) {
     const ctx = document.getElementById('clusterChart');
     if (!ctx) return;
@@ -199,14 +184,19 @@ function renderClusterChart(clusters) {
 
     const now = new Date();
 
-    const bubbleData = clusters.map(c => {
+    // [수정] 기사 수(vol) 4개 이상인 이슈만 필터링
+    const validClusters = clusters.filter(c => c.vol >= 4);
+
+    const bubbleData = validClusters.map(c => {
         const pubDate = c.time ? new Date(c.time) : new Date();
         const hoursAgo = (pubDate - now) / (1000 * 60 * 60);
 
         return {
             x: hoursAgo, 
             y: c.imp, 
-            r: Math.min(Math.max(c.vol / 2, 4), 30),
+            // 원 크기(r): 기사량(vol)에 비례
+            r: Math.min(Math.max(c.vol / 2, 5), 35),
+            
             title: c.title,
             topic: c.topic,
             vol: c.vol,
@@ -219,13 +209,13 @@ function renderClusterChart(clusters) {
         type: 'bubble',
         data: {
             datasets: [{
-                label: '이슈',
+                label: '주요 이슈',
                 data: bubbleData,
                 backgroundColor: (context) => {
                     const val = context.raw?.sent;
-                    if (val >= 6.0) return 'rgba(34, 197, 94, 0.7)'; // Green
-                    if (val <= 4.0) return 'rgba(239, 68, 68, 0.7)'; // Red
-                    return 'rgba(245, 158, 11, 0.7)'; // Amber
+                    if (val >= 6.0) return 'rgba(34, 197, 94, 0.7)'; // 긍정(초록)
+                    if (val <= 4.0) return 'rgba(239, 68, 68, 0.7)'; // 부정(빨강)
+                    return 'rgba(245, 158, 11, 0.7)'; // 중립(주황)
                 },
                 borderColor: (context) => {
                     const val = context.raw?.sent;
