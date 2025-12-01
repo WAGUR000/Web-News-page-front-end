@@ -94,8 +94,8 @@ function renderTrendChart(hourlyData) {
             label: '중요도',
             data: importances,
             type: 'line',
-            borderColor: '#f59e0b', // 주황색
-            backgroundColor: '#f59e0b',
+            borderColor: '#10b981', 
+            backgroundColor: '#10b981',
             borderWidth: 2,
             pointRadius: 0,
             borderDash: [5, 5], // 점선
