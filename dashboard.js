@@ -208,7 +208,7 @@ function renderClusterList(clusters) {
     topClusters.forEach((cluster, idx) => {
         const div = document.createElement('div');
         div.className = 'cluster-item';
-        const badgeClass = cluster.imp >= 7 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700';
+        const badgeClass = cluster.imp >= 6 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700';
         
         div.innerHTML = `
             <div class="cluster-rank">${idx + 1}</div>
