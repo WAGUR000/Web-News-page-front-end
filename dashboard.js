@@ -197,7 +197,7 @@ function renderClusterList(clusters) {
     container.innerHTML = '';
     
     // [수정] 기사 수(vol)가 4개 이상인 것만 필터링 후 중요도순 정렬
-    const filteredClusters = clusters.filter(c => c.vol >= 4);
+    const filteredClusters = clusters.filter(c => c.vol >= 3);
     const topClusters = filteredClusters.sort((a, b) => b.imp - a.imp).slice(0, 5);
 
     if (topClusters.length === 0) {
