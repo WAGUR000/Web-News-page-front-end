@@ -49,28 +49,47 @@ navLinks.forEach(link => {
     const dateString = `${year}-${month}-${day}`;
 
     try {
-        //  1. 메인 페이지용 데이터 로드: 'all_categories_summary' 모드로 오늘의 모든 카테고리별 뉴스를 한 번에 요청합니다.
+        // 1. 데이터 가져오기
         const allNewsByCategory = await fetchMainPageNews(dateString);
-        //  전체 뉴스 데이터를 저장해두어 관련 뉴스 검색에 사용합니다.
+        
+        // 전체 뉴스 합치기
         const combinedNews = [
             ...Object.values(allNewsByCategory.important).flat(),
             ...Object.values(allNewsByCategory.latest).flat()
         ];
 
-        // 'important'와 'latest'에 중복된 뉴스가 있을 수 있으므로, SK를 기준으로 중복을 제거합니다.
+        // 2. SK(기사 고유 ID) 기준 1차 중복 제거 (완전히 동일한 기사 제거)
         const allMainPageNews = combinedNews.filter((news, index, self) =>
             index === self.findIndex(n => n.SK === news.SK)
         );
 
-        //   .sort()는 원본 배열을 변경하므로, [...allMainPageNews]로 복사본을 만들어 정렬합니다.
-        // 이렇게 해야 allMainPageNews 배열의 순서가 유지됩니다.
-        const importantNewsData = [...allMainPageNews]
+        // 3. 중요도순 정렬 (이건 그대로 유지)
+        // 정렬을 먼저 해야, 나중에 중복 제거할 때 가장 중요한 기사가 남습니다.
+        const sortedByImportance = [...allMainPageNews]
             .sort((a, b) => b.importance - a.importance);
+
+        // 4. [⭐️핵심 수정] ClusterId 기준 중복 제거 (중요 뉴스 렌더링용)
+        // clusterId가 있다면, 이미 리스트에 존재하는 같은 clusterId의 기사는 제외합니다.
+        // 정렬이 이미 되어 있으므로, 같은 주제 중 가장 점수가 높은 기사 1개만 남습니다.
+        const uniqueImportantNews = sortedByImportance.filter((news, index, self) => {
+            // clusterId가 없는 단독 기사는 무조건 포함
+            if (!news.clusterId) return true;
+
+            // 현재 기사의 clusterId를 가진 첫 번째 기사의 인덱스를 찾음
+            const firstIndex = self.findIndex(n => n.clusterId === news.clusterId);
+            
+            // 현재 기사가 그 첫 번째 기사라면 포함 (true), 아니면 제외 (false)
+            return index === firstIndex;
+        });
+
+        // 5. 최신순 정렬 (타임라인용은 주제가 겹쳐도 시간순으로 보여주는게 보통이므로 필터링 안 함)
+        // 만약 최신순에서도 중복을 빼고 싶다면 uniqueImportantNews를 날짜순 정렬하면 됩니다.
         const latestNewsData = [...allMainPageNews]
             .sort((a, b) => new Date(b.pub_date) - new Date(a.pub_date));
 
-        //  2. 메인 페이지 렌더링
-        renderTopNews(importantNewsData);
+        // 6. 메인 페이지 렌더링
+        // [변경] importantNewsData 대신 필터링된 uniqueImportantNews를 전달
+        renderTopNews(uniqueImportantNews); 
         renderLatestNews(latestNewsData);
 
         //  3. 뉴스 탐색 페이지 초기 데이터 로드
