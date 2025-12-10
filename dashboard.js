@@ -234,7 +234,7 @@ function renderClusterChart(clusters) {
     const now = new Date();
 
     // [수정] 기사 수(vol) 8개 이상인 이슈만 필터링
-    const validClusters = clusters.filter(c => c.vol >= 8);
+    const validClusters = clusters.filter(c => c.vol >= 10);
 
     const bubbleData = validClusters.map(c => {
         const pubDate = c.time ? new Date(c.time) : new Date();
