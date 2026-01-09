@@ -1,5 +1,5 @@
-const BASE_URL = `/api/default/Access_DynamoDB`;
-const ANALYTICS_API_URL = "/api/default/Request_Analysis_Lambda";
+const BASE_URL = `/api/Access_DynamoDB`;
+const ANALYTICS_API_URL = "/api/Request_Analysis_Lambda";
 
 /**
  * API 요청 중 발생하는 에러를 처리하고 응답을 JSON으로 파싱하는 헬퍼 함수
