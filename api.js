@@ -1,5 +1,5 @@
-const BASE_URL = `/default/Access_DynamoDB`;
-const ANALYTICS_API_URL = "/default/Request_Analysis_Lambda";
+const BASE_URL = `/api/article`;
+const ANALYTICS_API_URL = "/api/analyze";
 
 /**
  * API 요청 중 발생하는 에러를 처리하고 응답을 JSON으로 파싱하는 헬퍼 함수
@@ -22,8 +22,8 @@ async function handleApiResponse(response) {
  * @param {string} dateString - 'YYYY-MM-DD' 형식의 날짜 문자열
  * @returns {Promise<object>} 카테고리별로 분류된 뉴스 데이터
  */
-export async function fetchMainPageNews(dateString) {
-    const url = `${BASE_URL}?mode=all_categories_summary&date=${dateString}`;
+export async function fetchMainPageNews() {
+    const url = `${BASE_URL}?mode=all_categories_summary`;
     const response = await fetch(url);
     return handleApiResponse(response);
 }
@@ -38,15 +38,15 @@ export async function fetchMainPageNews(dateString) {
  * @param {object} [params.exclusiveStartKey] - 페이지네이션을 위한 DynamoDB의 exclusiveStartKey
  * @returns {Promise<{items: Array<object>, lastEvaluatedKey: object}>} 뉴스 목록과 다음 페이지 토큰
  */
-export async function fetchExploreNews({ category, sortBy, limit, date, exclusiveStartKey }) {
+export async function fetchExploreNews({ category, sortBy, limit, date, page=0}) {
     const params = new URLSearchParams({
         mode: 'explore',
         category,
         sortBy,
         limit,
+        page
     });
     if (date) params.append('date', date);
-    if (exclusiveStartKey) params.append('exclusiveStartKey', JSON.stringify(exclusiveStartKey));
 
     const response = await fetch(`${BASE_URL}?${params.toString()}`);
     return handleApiResponse(response);

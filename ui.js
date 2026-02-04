@@ -3,8 +3,10 @@
         // ⭐️ 중요도(1~10)를 별점으로 변환합니다.
         const filledSquare = news.importance;
         const emptySquare = 10 - filledSquare;
-        // ⭐️ SK 값에서 '#' 뒤의 URL을 추출합니다. URL이 없으면 '#'을 기본값으로 사용합니다.
-        const url = news.SK && news.SK.includes('#') ? news.SK.split('#')[1] : '#';
+        //  SK 값에서 '#' 뒤의 URL을 추출합니다. URL이 없으면 '#'을 기본값으로 사용합니다.
+        // 더이상 SK는 사용하지 않으며, link 필드를 사용한다.
+    
+        const url = news.link
 
         // 감정 분석 클래스 및 텍스트 설정 (0.0 ~ 10.0 숫자 값 기준)
         let sentimentClass = '';
@@ -54,29 +56,25 @@
      // 메인 페이지: 오늘의 주요 뉴스 렌더링
  export function renderTopNews(newsData) {
         const container = document.getElementById('top-news');
-        // API에서 이미 중요도 순으로 정렬된 데이터를 받았으므로, 상위 6개만 잘라서 보여줍니다.
-        // is_representative가 1이거나 없는 경우(이전 데이터)만 필터링합니다. (문자열 "0"도 고려하여 != 사용)
-        const representativeNews = newsData.filter(news => news.is_representative != 0);
-        
-        container.innerHTML = representativeNews.slice(0, 6).map(createNewsItemHTML).join('');
+    // 서버에서 이미 중요도 순 및 대표 뉴스(is_representative) 처리가 되어 오므로 바로 슬라이스합니다.
+        container.innerHTML = newsData.slice(0, 6).map(createNewsItemHTML).join('');
     }
 
- export function renderLatestNews(newsData) {
+    export function renderLatestNews(newsData) {
         const container = document.getElementById('latest-news');
         // 활성화된 카테고리 버튼에서 카테고리 값을 가져옵니다.
         const activeCategoryButton = document.querySelector('#main-category-filter-list .category-btn.active');
         const category = activeCategoryButton ? activeCategoryButton.dataset.category : 'all';
 
-        // is_representative가 1이거나 없는 경우(이전 데이터)만 필터링합니다. (문자열 "0"도 고려하여 != 사용)
-        let representativeNews = newsData.filter(news => news.is_representative != 0);
+        let displayNews = newsData;
 
-        // 카테고리 필터링
+        // 카테고리 필터링 (서버에서 전체 최신 데이터를 카테고리 구분 없이 보낼 경우를 대비)
         if (category !== 'all') {
-            representativeNews = representativeNews.filter(news => news.main_category === category);
+            displayNews = newsData.filter(news => news.main_category === category);
         }
 
-        // API에서 이미 최신순으로 데이터를 받았으므로, 별도 정렬은 필요 없습니다.
-        container.innerHTML = representativeNews.map(createNewsItemHTML).join('');
+        // 서버에서 이미 최신순으로 정렬된 대표 뉴스만 오므로 그대로 렌더링합니다.
+        container.innerHTML = displayNews.map(createNewsItemHTML).join('');
     }
 
 
@@ -174,18 +172,16 @@
 
         // isFullRender일 때는 전체를, 아닐 때는 새로 추가된 부분만 렌더링합니다.
         // is_representative가 1이거나 없는 경우(이전 데이터)만 필터링하여 화면에 표시합니다. (문자열 "0"도 고려하여 != 사용)
-        const representativeNews = paginatedNews.filter(news => news.is_representative != 0);
+        const newsHTML = paginatedNews.map(createNewsItemHTML).join('');
 
         if (isFullRender) {
-            resultsContainer.innerHTML = representativeNews.map(createNewsItemHTML).join('');
+            resultsContainer.innerHTML = newsHTML;
         } else {
-            resultsContainer.insertAdjacentHTML('beforeend', representativeNews.map(createNewsItemHTML).join(''));
+            resultsContainer.insertAdjacentHTML('beforeend', newsHTML);
         }
         
-        // ⭐️ 개선된 페이지네이션 렌더링 함수 호출
         renderPagination(exploreNews, exploreCurrentPage, onPageChange);
         
-        // '더 보기' 버튼은 서버에 더 많은 데이터가 있고, 사용자가 마지막 페이지를 보고 있을 때만 표시
         if (exploreLastKey && exploreCurrentPage === totalPages) {
             const loadMoreBtn = document.createElement('button');
             loadMoreBtn.textContent = '더 보기';
@@ -194,7 +190,6 @@
             loadMoreContainer.appendChild(loadMoreBtn);
         }
 
-        // 만약 뉴스가 하나도 없다면(초기 상태) '더 보기' 버튼을 표시
         if (totalItems === 0) {
             const loadMoreBtn = document.createElement('button');
             loadMoreBtn.textContent = '뉴스 불러오기';
