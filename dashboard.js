@@ -61,7 +61,8 @@ function renderTrendChart(hourlyData) {
 
     const labels = hourlyData.map(d => {
         const date = new Date(d.time);
-        return date.getHours() + "시";
+        const kstHours = (date.getUTCHours() + 9) % 24;
+        return kstHours + "시";
     });
     const sentiments = hourlyData.map(d => d.avgSentiment);
     const importances = hourlyData.map(d => d.avgImportance);
@@ -253,7 +254,7 @@ function renderClusterChart(clusters) {
             topic: c.topic,
             vol: c.vol,
             sent: c.sent,
-            timeStr: pubDate.toLocaleTimeString('ko-KR', {hour: '2-digit', minute:'2-digit'})
+            timeStr: pubDate.toLocaleTimeString('ko-KR', {timeZone: 'Asia/Seoul', hour: '2-digit', minute:'2-digit'})
         };
     });
 

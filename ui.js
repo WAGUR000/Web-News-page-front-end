@@ -32,7 +32,7 @@
                <div class="news-meta">
                    <span class="category">${news.main_category}</span>
                    <span>중요도: ${'★'.repeat(filledSquare)}${'☆'.repeat(emptySquare)}</span>
-                   <span>${new Date(news.pub_date).toLocaleString()}</span>
+                   <span>${new Date(news.pub_date).toLocaleString('ko-KR', {timeZone: 'Asia/Seoul'})}</span>
                </div>
                <div class="news-details">
                    <p class="news-description">${news.description || '상세 설명이 없습니다.'}</p>
