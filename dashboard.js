@@ -59,9 +59,7 @@ function renderTrendChart(hourlyData) {
 
     if (trendChartInstance) trendChartInstance.destroy();
 
-    const labels = hourlyData.map(d => {
-        return (d.time + 9) % 24 + "시";
-    });
+    const labels = hourlyData.map(d => d.time + "시");
     const sentiments = hourlyData.map(d => d.avgSentiment);
     const importances = hourlyData.map(d => d.avgImportance);
 
