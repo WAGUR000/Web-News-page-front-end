@@ -60,9 +60,7 @@ function renderTrendChart(hourlyData) {
     if (trendChartInstance) trendChartInstance.destroy();
 
     const labels = hourlyData.map(d => {
-        const date = new Date(d.time);
-        const kstHours = (date.getUTCHours() + 9) % 24;
-        return kstHours + "시";
+        return (d.time + 9) % 24 + "시";
     });
     const sentiments = hourlyData.map(d => d.avgSentiment);
     const importances = hourlyData.map(d => d.avgImportance);
