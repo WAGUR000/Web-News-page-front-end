@@ -25,8 +25,13 @@
             sentimentText = `중립(${sentimentValue.toFixed(1)})`;
         }
     
+        const imageHTML = news.image_url
+            ? `<img class="news-thumbnail" src="${news.image_url}" alt="${news.title}" loading="lazy" onerror="this.style.display='none'">`
+            : '';
+
         return `
            <div class="news-item" data-category="${news.main_category}" data-cluster-id="${news.clusterId || ''}">
+               ${imageHTML}
                <h3>${news.title}</h3>
                <p>${news.topic || '주제 정보가 없습니다.'}</p>
                <div class="news-meta">

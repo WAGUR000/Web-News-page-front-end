@@ -73,6 +73,16 @@ h2 {
     display: block;
 }
 
+/* 뉴스 카드 썸네일 이미지 */
+.news-thumbnail {
+    display: block;
+    width: calc(100% + 3rem);
+    margin: -1.5rem -1.5rem 1rem -1.5rem;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 8px 8px 0 0;
+}
+
 /* 뉴스 카드 스타일 */
 .news-grid {
     display: grid;
